@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>My Constellation</title>
+<meta name="description" content="日々を照らす、小さな星たちを集めて。好きなもの・楽しみにしていることだけを集める、あなただけの星座。" />
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#121633" />
+<meta name="color-scheme" content="dark light" />
+
+<!-- iOS home screen behaviour -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Constellation" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="format-detection" content="telephone=no" />
+
+<!-- Icons -->
+<link rel="icon" href="favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+
+<!-- iOS splash screens (shown for a moment while the app launches from the home screen) -->
+<link rel="apple-touch-startup-image" href="icons/splash-750x1334.png"
+      media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" />
+<link rel="apple-touch-startup-image" href="icons/splash-1170x2532.png"
+      media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" />
+<link rel="apple-touch-startup-image" href="icons/splash-1284x2778.png"
+      media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)" />
+
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- Launch splash: static markup so it paints before any JS runs. app.js fades + removes it. -->
+<div class="oc-splash" id="splash">
+  <span class="oc-splash-star" aria-hidden="true"></span>
+  <div class="oc-splash-text">My Constellation</div>
+</div>
+
+<div id="app" role="main"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

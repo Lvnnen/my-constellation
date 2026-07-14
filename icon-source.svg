@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!--
+    My Constellation — app icon source.
+    Navy background + a single gold 5-point star, centered.
+    Re-export at any size (180 / 192 / 512 / etc.) for app stores or PWA manifests.
+    No manual corner rounding: iOS/Android apply their own icon mask.
+  -->
+  <rect width="512" height="512" fill="#121633"/>
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFD874" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#FFD874" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="256" cy="256" r="150" fill="url(#glow)"/>
+  <polygon
+    fill="#FFD874"
+    points="
+      256,82
+      285.7,199.4
+      406.8,199.4
+      309.5,270.6
+      346.5,388
+      256,316.8
+      165.5,388
+      202.5,270.6
+      105.2,199.4
+      226.3,199.4
+    "/>
+</svg>
