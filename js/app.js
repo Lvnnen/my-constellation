@@ -13,7 +13,7 @@ import {
 } from "./storage.js";
 import {
   APP_VERSION, catOf,
-  renderHeader, renderSearchBar, renderChips, renderCalendarCard, renderListCard,
+  renderHeader, renderSearchBar, renderChips, renderCalendarCard, renderMonthPicker, renderListCard,
   renderEventModal, renderCatManager, renderSettings, renderConfirm, renderToast,
 } from "./ui.js";
 
@@ -26,6 +26,9 @@ const state = {
   activeFilters: loadJSON(STORAGE_FILTERS, DEFAULT_CATEGORIES.map((c) => c.id)),
   cursor: startOfDay(new Date()),
   selectedDate: null,
+  navDirection: null,
+  monthPickerOpen: false,
+  pickerYear: new Date().getFullYear(),
   editing: null,
   addingCat: false,
   newCatColor: SWATCHES[0],
@@ -103,6 +106,7 @@ function renderNow() {
     <button class="oc-fab" data-action="open-add" aria-label="予定を追加">＋</button>
     ${renderEventModal(state)}
     ${renderCatManager(state)}
+    ${renderMonthPicker(state)}
     ${renderSettings(state)}
     ${renderConfirm(state)}
     ${renderToast(state)}
@@ -205,9 +209,28 @@ document.addEventListener("click", (e) => {
       render();
       break;
     }
-    case "prev-month": state.cursor = new Date(state.cursor.getFullYear(), state.cursor.getMonth() - 1, 1); render(); break;
-    case "next-month": state.cursor = new Date(state.cursor.getFullYear(), state.cursor.getMonth() + 1, 1); render(); break;
-    case "go-today": state.cursor = startOfDay(new Date()); state.selectedDate = null; render(); break;
+    case "prev-month": {
+      state.cursor = new Date(state.cursor.getFullYear(), state.cursor.getMonth() - 1, 1);
+      state.navDirection = "prev";
+      render();
+      state.navDirection = null;
+      break;
+    }
+    case "next-month": {
+      state.cursor = new Date(state.cursor.getFullYear(), state.cursor.getMonth() + 1, 1);
+      state.navDirection = "next";
+      render();
+      state.navDirection = null;
+      break;
+    }
+    case "go-today": {
+      state.cursor = startOfDay(new Date());
+      state.selectedDate = null;
+      state.navDirection = "jump";
+      render();
+      state.navDirection = null;
+      break;
+    }
 
     case "select-day": {
       const d = fromDateStr(t.dataset.date);
@@ -219,6 +242,21 @@ document.addEventListener("click", (e) => {
     case "add-for-day": openAdd(t.dataset.date); break;
     case "open-add": openAdd(state.selectedDate ? toDateStr(state.selectedDate) : toDateStr(startOfDay(new Date()))); break;
     case "close-modal": closeModal(); break;
+
+    case "open-month-picker": state.pickerYear = state.cursor.getFullYear(); state.monthPickerOpen = true; render(); break;
+    case "close-month-picker": state.monthPickerOpen = false; render(); break;
+    case "picker-prev-year": state.pickerYear -= 1; render(); break;
+    case "picker-next-year": state.pickerYear += 1; render(); break;
+    case "pick-month": {
+      const year = parseInt(t.dataset.year, 10), month = parseInt(t.dataset.month, 10);
+      state.cursor = new Date(year, month, 1);
+      state.selectedDate = null;
+      state.monthPickerOpen = false;
+      state.navDirection = "jump";
+      render();
+      state.navDirection = null;
+      break;
+    }
 
     case "pick-category": {
       const id = t.dataset.id;
@@ -429,6 +467,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (state.confirm) { state.confirm = null; render(); return; }
   if (state.settingsOpen) { state.settingsOpen = false; render(); return; }
+  if (state.monthPickerOpen) { state.monthPickerOpen = false; render(); return; }
   if (state.catManagerOpen) { state.catManagerOpen = false; render(); return; }
   if (state.editing) { closeModal(); return; }
 });

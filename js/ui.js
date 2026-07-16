@@ -15,6 +15,13 @@ export function catOf(categories, id) {
   return categories.find((c) => c.id === id) || categories[categories.length - 1] || { name: "その他", color: "#C7CBE0" };
 }
 
+/** The one soft-star glyph used everywhere (title, chips, calendar, buttons, splash).
+ *  `color` sets currentColor (via inline style) so each usage can tint it independently. */
+export function starIcon(extraClass = "", color = "") {
+  const style = color ? ` style="color:${color}"` : "";
+  return `<svg class="oc-star-icon ${extraClass}" aria-hidden="true"${style}><use href="#star-soft"></use></svg>`;
+}
+
 /* ---------------------------------------------------------------------- */
 /* Header                                                                  */
 /* ---------------------------------------------------------------------- */
@@ -22,7 +29,7 @@ export function renderHeader() {
   return `
     <div class="oc-header">
       <div class="oc-header-text">
-        <div class="oc-title"><span class="oc-title-mark" aria-hidden="true"></span>My Constellation</div>
+        <div class="oc-title">${starIcon("oc-title-mark")}My Constellation</div>
         <div class="oc-sub">日々を照らす、小さな星たちを集めて。</div>
       </div>
       <button class="oc-icon-btn" data-action="toggle-search" aria-label="予定を検索">🔎</button>
@@ -59,13 +66,13 @@ export function renderChips(state) {
     <button class="oc-chip ${activeSet.has(c.id) ? "active" : ""}" data-action="toggle-filter" data-id="${c.id}"
       style="${activeSet.has(c.id) ? `box-shadow:0 2px 8px ${c.color}55` : ""}"
       aria-pressed="${activeSet.has(c.id)}">
-      <span class="oc-chip-star" style="background:${c.color}" aria-hidden="true"></span>${escapeHtml(c.name)}
+      ${starIcon("oc-chip-star", c.color)}${escapeHtml(c.name)}
     </button>
   `).join("");
   return `
     <div class="oc-chips">
       ${chips}
-      <button class="oc-chip oc-manage-chip" data-action="open-catmanager">✦ 色を編集</button>
+      <button class="oc-chip oc-manage-chip" data-action="open-catmanager">${starIcon("oc-chip-star")}色を編集</button>
     </div>
   `;
 }
@@ -94,29 +101,64 @@ export function renderCalendarCard(state, today) {
     const isToday = d.getTime() === today.getTime();
     const isSelected = state.selectedDate && toDateStr(d) === toDateStr(state.selectedDate);
     const dayEvents = visibleEvents.filter((e) => occursOn(e, d));
-    const dots = dayEvents.slice(0, 3).map((e) =>
-      `<span class="oc-dot" style="background:${isSelected ? "#fff" : catOf(state.categories, e.category).color}"></span>`
+    const shown = dayEvents.slice(0, 3);
+    const stars = shown.map((e) =>
+      starIcon("oc-day-star", isSelected ? "#fff" : catOf(state.categories, e.category).color)
     ).join("");
+    const plus = dayEvents.length > 3 ? `<span class="oc-day-star-plus">+</span>` : "";
     const wd = d.getDay();
     const numClass = isHoliday(d) ? "holiday" : wd === 0 ? "sun" : wd === 6 ? "sat" : "";
     return `<button class="oc-day ${isToday ? "today" : ""} ${isSelected ? "selected" : ""}" data-action="select-day" data-date="${toDateStr(d)}" aria-label="${d.getMonth() + 1}月${d.getDate()}日${dayEvents.length ? `、予定${dayEvents.length}件` : ""}">
-      <span class="num ${numClass}">${d.getDate()}</span><span class="oc-dots">${dots}</span>
+      <span class="num ${numClass}">${d.getDate()}</span><span class="oc-day-stars">${stars}${plus}</span>
     </button>`;
   }).join("");
+
+  const navClass = state.navDirection === "next" ? "nav-next" : state.navDirection === "prev" ? "nav-prev" : state.navDirection === "jump" ? "nav-jump" : "";
 
   return `
     <div class="oc-card">
       <div class="oc-cal-head">
         <button class="oc-nav-btn" data-action="prev-month" aria-label="前の月">‹</button>
         <div class="oc-cal-title-group">
-          <div class="oc-cal-title">${monthLabel}</div>
-          ${!isCurrentMonth || state.selectedDate ? `<button class="oc-today-btn" data-action="go-today">今日へ戻る</button>` : ""}
+          <button class="oc-cal-title" data-action="open-month-picker" aria-haspopup="dialog">
+            ${monthLabel}<span class="oc-cal-chevron" aria-hidden="true">▾</span>
+          </button>
+          <button class="oc-today-btn ${!isCurrentMonth || state.selectedDate ? "is-active" : ""}" data-action="go-today" aria-label="今日へ戻る">
+            ${starIcon("oc-today-star")}
+          </button>
         </div>
         <button class="oc-nav-btn" data-action="next-month" aria-label="次の月">›</button>
       </div>
-      <div class="oc-grid">${wdHtml}${dayHtml}</div>
+      <div class="oc-grid ${navClass}">${wdHtml}${dayHtml}</div>
     </div>
   `;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Month / year picker                                                    */
+/* ---------------------------------------------------------------------- */
+export function renderMonthPicker(state) {
+  if (!state.monthPickerOpen) return "";
+  const year = state.pickerYear;
+  const curY = state.cursor.getFullYear(), curM = state.cursor.getMonth();
+  const grid = Array.from({ length: 12 }, (_, m) => `
+    <button class="oc-month-cell ${year === curY && m === curM ? "sel" : ""}" data-action="pick-month" data-year="${year}" data-month="${m}">${m + 1}月</button>
+  `).join("");
+  return `
+  <div class="oc-overlay" data-action="close-month-picker" role="presentation">
+    <div class="oc-modal oc-month-picker" data-action="stop" role="dialog" aria-modal="true" aria-label="年月を選択">
+      <div class="oc-modal-title">年月を選択</div>
+      <div class="oc-picker-year-row">
+        <button class="oc-nav-btn" data-action="picker-prev-year" aria-label="前の年">‹</button>
+        <div class="oc-picker-year">${year}年</div>
+        <button class="oc-nav-btn" data-action="picker-next-year" aria-label="次の年">›</button>
+      </div>
+      <div class="oc-month-grid">${grid}</div>
+      <div class="oc-btn-row">
+        <button class="oc-btn oc-btn-ghost" data-action="close-month-picker">キャンセル</button>
+      </div>
+    </div>
+  </div>`;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -141,7 +183,7 @@ export function ticketToday(e, categories) {
   const c = catOf(categories, e.category);
   return buildTicket({
     id: e.id, color: c.color,
-    numHtml: e.yearly ? "✨" : fromDateStr(e.date).getDate(),
+    numHtml: e.yearly ? starIcon("oc-ticket-star", c.color) : fromDateStr(e.date).getDate(),
     title: e.title,
     metaHtml: e.note ? `<div class="oc-ticket-meta">${escapeHtml(e.note)}</div>` : "",
     badgeText: c.name,
@@ -187,7 +229,7 @@ export function renderListCard(state, today, computed) {
     return `
       <div class="oc-card">
         <div class="oc-section-title">
-          𖤐検索結果（${results.length}件）
+          ${starIcon("oc-section-star")}検索結果（${results.length}件）
           <select class="oc-sort-select" data-action="change-sort" aria-label="並び替え">
             <option value="date-asc" ${state.sortOrder === "date-asc" ? "selected" : ""}>日付が近い順</option>
             <option value="date-desc" ${state.sortOrder === "date-desc" ? "selected" : ""}>新しい順</option>
@@ -205,7 +247,7 @@ export function renderListCard(state, today, computed) {
     const sel = state.selectedDate;
     return `
       <div class="oc-card">
-        <div class="oc-section-title">${sel.getMonth() + 1}月${sel.getDate()}日の予定</div>
+        <div class="oc-section-title">${starIcon("oc-section-star")}${sel.getMonth() + 1}月${sel.getDate()}日の予定</div>
         ${selectedEvents.length === 0
           ? `<div class="oc-empty">この日の予定はまだありません</div>`
           : selectedEvents.map((e) => ticketToday(e, state.categories)).join("")}
@@ -218,20 +260,16 @@ export function renderListCard(state, today, computed) {
 
   return `
     <div class="oc-card">
-      <div class="oc-split">
-        <div class="oc-split-col">
-          <div class="oc-section-title">𖤐今日の予定</div>
-          ${todays.length === 0
-            ? `<div class="oc-empty">今日の予定はありません</div>`
-            : todays.map((e) => ticketToday(e, state.categories)).join("")}
-        </div>
-        <div class="oc-split-col">
-          <div class="oc-section-title">𖤐これからの予定</div>
-          ${upcoming.length === 0
-            ? `<div class="oc-empty">1週間以内の予定はありません</div>`
-            : upcoming.map((e) => ticketCountdown(e, state.categories, e._next, today)).join("")}
-        </div>
-      </div>
+      <div class="oc-section-title">${starIcon("oc-section-star")}Today</div>
+      ${todays.length === 0
+        ? `<div class="oc-empty">今日の予定はありません</div>`
+        : todays.map((e) => ticketToday(e, state.categories)).join("")}
+    </div>
+    <div class="oc-card">
+      <div class="oc-section-title">${starIcon("oc-section-star")}Up Next</div>
+      ${upcoming.length === 0
+        ? `<div class="oc-empty">1週間以内の予定はありません</div>`
+        : upcoming.map((e) => ticketCountdown(e, state.categories, e._next, today)).join("")}
     </div>
   `;
 }
@@ -244,7 +282,7 @@ export function renderEventModal(state) {
   if (!ed) return "";
   const catPills = state.categories.map((c) => `
     <div class="oc-cat-pill ${ed.category === c.id ? "sel" : ""}" style="--c:${c.color}" data-action="pick-category" data-id="${c.id}">
-      <span class="oc-chip-star" style="background:${c.color}" aria-hidden="true"></span>${escapeHtml(c.name)}
+      ${starIcon("oc-chip-star", c.color)}${escapeHtml(c.name)}
     </div>
   `).join("") + `<div class="oc-cat-pill" data-action="toggle-addcat">＋ 追加</div>`;
 
@@ -444,7 +482,7 @@ export function renderToast(state) {
 export function splashHtml() {
   return `
     <div class="oc-splash" id="splash">
-      <span class="oc-splash-star" aria-hidden="true"></span>
+      ${starIcon("oc-splash-star")}
       <div class="oc-splash-text">My Constellation</div>
     </div>
   `;

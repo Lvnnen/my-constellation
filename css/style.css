@@ -22,7 +22,8 @@
   --muted: #8d89b8;
   --faint: #aca8d9;
 
-  --card-bg: #eef0fb;
+  --card-bg: rgba(238, 240, 251, 0.72);
+  --card-border: rgba(255, 255, 255, 0.4);
   --input-bg: #f7f6fd;
   --border: #e2dff6;
   --chip-bg: rgba(255, 255, 255, 0.08);
@@ -55,7 +56,8 @@
   --muted: #767299;
   --faint: #9a96c2;
 
-  --card-bg: #ffffff;
+  --card-bg: rgba(255, 255, 255, 0.78);
+  --card-border: rgba(255, 255, 255, 0.9);
   --input-bg: #f7f7fd;
   --border: #e6e4f5;
   --chip-bg: #ffffff;
@@ -123,8 +125,20 @@ body::before {
 .oc-header { max-width: 640px; margin: 0 auto 18px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .oc-header-text { flex: 1; min-width: 0; }
 .oc-title { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 32px; letter-spacing: .01em; display: flex; align-items: center; gap: 10px; color: var(--title-color); }
-.oc-title-mark { display: inline-block; width: 16px; height: 16px; flex-shrink: 0; background: var(--accent); clip-path: polygon(50% 0%, 63% 35%, 100% 38%, 72% 61%, 82% 98%, 50% 78%, 18% 98%, 28% 61%, 0% 38%, 37% 35%); box-shadow: 0 0 10px 1px rgba(255,216,116,.6); }
 .oc-sub { font-size: 12.5px; color: var(--sub-color); margin-top: 4px; font-weight: 500; }
+
+/* ---- Unified soft-star glyph (title, chips, calendar, buttons, splash) ----
+   One <symbol> (index.html) reused everywhere via <use>. The stroke with a
+   round linejoin is what turns the straight-edged polygon into a soft,
+   rounded star instead of a sharp one — no separate shape needed per use. */
+.oc-star-icon {
+  width: 1em; height: 1em; flex-shrink: 0;
+  fill: currentColor; stroke: currentColor;
+  stroke-width: 26; stroke-linejoin: round; stroke-linecap: round;
+  color: var(--accent);
+  overflow: visible;
+}
+.oc-title-mark { font-size: 17px; filter: drop-shadow(0 0 5px rgba(255,216,116,.55)); }
 .oc-icon-btn { width: 38px; height: 38px; border-radius: 50%; border: none; background: var(--chip-bg); border: 1px solid var(--chip-border); color: var(--sub-color); font-size: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform .15s ease, background .15s ease; }
 .oc-icon-btn:active { transform: scale(.92); }
 
@@ -146,25 +160,49 @@ body::before {
 .oc-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 16px; align-items: center; }
 .oc-chip { font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; font-weight: 700; padding: 6px 12px 6px 10px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; gap: 6px; background: var(--chip-bg); color: var(--sub-color); user-select: none; border: 1px solid var(--chip-border); transition: transform .12s ease; }
 .oc-chip:active { transform: scale(.96); }
-.oc-chip-star { width: 9px; height: 9px; flex-shrink: 0; clip-path: polygon(50% 0%, 63% 35%, 100% 38%, 72% 61%, 82% 98%, 50% 78%, 18% 98%, 28% 61%, 0% 38%, 37% 35%); }
+.oc-chip-star { font-size: 9px; }
 .oc-chip.active { color: var(--ink); background: var(--card-bg); box-shadow: 0 2px 10px rgba(0,0,0,.18); border-color: transparent; }
 .oc-manage-chip { border: 1px dashed var(--chip-border); color: var(--sub-color); background: transparent; }
 
 /* ---- Cards ---- */
-.oc-card { background: var(--card-bg); border-radius: 18px; padding: 16px; box-shadow: var(--shadow-card); margin-bottom: 16px; transition: background .4s ease; }
+.oc-card {
+  background: var(--card-bg); border-radius: 22px; padding: 18px;
+  box-shadow: var(--shadow-card); margin-bottom: 16px;
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  transition: background .4s ease;
+}
 
 /* ---- Calendar ---- */
-.oc-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 8px; }
-.oc-cal-title-group { display: flex; align-items: center; gap: 8px; }
-.oc-cal-title { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 17px; color: var(--ink); }
-.oc-today-btn { font-family: 'Zen Maru Gothic', sans-serif; font-size: 11px; font-weight: 700; color: var(--muted); background: var(--ghost-btn-bg); border: none; border-radius: 999px; padding: 4px 10px; cursor: pointer; }
-.oc-today-btn:active { transform: scale(.95); }
+.oc-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 8px; }
+.oc-cal-title-group { display: flex; align-items: center; gap: 6px; }
+.oc-cal-title {
+  font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 17px; color: var(--ink);
+  background: none; border: none; padding: 4px 6px; border-radius: 8px; cursor: pointer;
+  display: flex; align-items: center; gap: 4px; transition: transform .12s ease, background .15s ease;
+}
+.oc-cal-title:active { transform: scale(.96); background: var(--ghost-btn-bg); }
+.oc-cal-chevron { font-size: 10px; color: var(--faint); }
+.oc-today-btn {
+  width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--ghost-btn-bg);
+  color: var(--faint); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; transition: transform .15s ease, color .15s ease;
+}
+.oc-today-btn:active { transform: scale(.9); }
+.oc-today-btn.is-active { color: var(--accent); }
 .oc-nav-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--nav-btn-bg); color: var(--ink); font-size: 16px; cursor: pointer; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .oc-nav-btn:active { background: var(--border); }
 .oc-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.oc-grid.nav-next { animation: oc-slide-left .3s cubic-bezier(.2,.8,.2,1) both; }
+.oc-grid.nav-prev { animation: oc-slide-right .3s cubic-bezier(.2,.8,.2,1) both; }
+.oc-grid.nav-jump { animation: oc-fade-in .3s ease both; }
+@keyframes oc-slide-left { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+@keyframes oc-slide-right { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .oc-grid.nav-next, .oc-grid.nav-prev, .oc-grid.nav-jump { animation: none; } }
 .oc-wd { text-align: center; font-size: 11px; font-weight: 700; color: var(--faint); padding-bottom: 4px; }
 .oc-wd.sun { color: var(--sun-holiday); } .oc-wd.sat { color: var(--saturday); }
-.oc-day { position: relative; aspect-ratio: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border: none; background: transparent; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 500; color: var(--ink); gap: 2px; transition: background .15s ease; }
+.oc-day { position: relative; aspect-ratio: 1; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border: none; background: transparent; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 500; color: var(--ink); gap: 2px; transition: background .15s ease; }
 .oc-day.empty { cursor: default; visibility: hidden; }
 .oc-day.selected { background: var(--ink); }
 [data-theme="light"] .oc-day.selected { background: #2c2760; }
@@ -174,8 +212,10 @@ body::before {
 .oc-day.today:not(.selected) { box-shadow: 0 0 0 2px var(--accent); animation: oc-pulse 2.2s ease-in-out infinite; }
 @keyframes oc-pulse { 0%,100% { box-shadow: 0 0 0 2px var(--accent); } 50% { box-shadow: 0 0 0 5px rgba(255,216,116,.4); } }
 @media (prefers-reduced-motion: reduce) { .oc-day.today { animation: none; } }
-.oc-dots { display: flex; flex-direction: column; align-items: center; gap: 1.5px; margin-top: 1px; }
-.oc-dot { width: 15px; height: 3px; border-radius: 1.5px; }
+.oc-day-stars { display: flex; align-items: center; gap: 1.5px; height: 8px; }
+.oc-day-star { font-size: 6px; }
+.oc-day-star-plus { font-size: 8px; font-weight: 700; color: var(--faint); line-height: 1; }
+.oc-day.selected .oc-day-star-plus { color: #fff; }
 
 /* ---- Section titles / split today+upcoming ---- */
 .oc-section-title { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--ink); display: flex; align-items: center; gap: 6px; }
@@ -183,13 +223,9 @@ body::before {
   margin-left: auto; font-family: 'Noto Sans JP', sans-serif; font-size: 11.5px; font-weight: 500;
   border: 1px solid var(--border); border-radius: 8px; padding: 4px 6px; background: var(--input-bg); color: var(--muted);
 }
-.oc-split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
-.oc-split-col { min-width: 0; }
-.oc-split .oc-section-title { font-size: 12.5px; white-space: nowrap; }
-.oc-split .oc-empty { padding: 18px 4px; font-size: 11.5px; }
 
 /* ---- Tickets ---- */
-.oc-ticket { position: relative; display: flex; gap: 12px; align-items: center; background: var(--input-bg); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; border-left: 5px solid var(--c); transition: background .15s ease, transform .12s ease; }
+.oc-ticket { position: relative; display: flex; gap: 12px; align-items: center; background: var(--input-bg); border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; border-left: 5px solid var(--c); transition: background .15s ease, transform .12s ease; }
 .oc-ticket:active { background: var(--border); }
 .oc-ticket.oc-pressing { transform: scale(.98); }
 .oc-ticket-date { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; font-size: 12px; text-align: center; color: color-mix(in srgb, var(--c) 55%, var(--ink) 45%); min-width: 40px; line-height: 1.2; }
@@ -208,14 +244,20 @@ body::before {
 /* ---- Modal / overlay ---- */
 .oc-overlay { position: fixed; inset: 0; background: var(--overlay); display: flex; align-items: flex-end; justify-content: center; z-index: 40; animation: oc-overlay-in .25s ease both; }
 @keyframes oc-overlay-in { from { opacity: 0; } to { opacity: 1; } }
-.oc-modal { background: var(--card-bg); width: 100%; max-width: 480px; border-radius: 22px 22px 0 0; padding: 20px 18px max(26px, env(safe-area-inset-bottom)); max-height: 88vh; overflow-y: auto; animation: oc-modal-in .3s cubic-bezier(.2,.8,.2,1) both; }
+.oc-modal {
+  background: var(--card-bg); width: 100%; max-width: 480px; border-radius: 26px 26px 0 0;
+  padding: 20px 18px max(26px, env(safe-area-inset-bottom)); max-height: 88vh; overflow-y: auto;
+  border: 1px solid var(--card-border); border-bottom: none;
+  backdrop-filter: blur(28px) saturate(160%); -webkit-backdrop-filter: blur(28px) saturate(160%);
+  animation: oc-modal-in .3s cubic-bezier(.2,.8,.2,1) both;
+}
 @keyframes oc-modal-in { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .oc-overlay, .oc-modal { animation: none; } }
 .oc-modal-title { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 17px; margin-bottom: 14px; color: var(--ink); }
 .oc-field { margin-bottom: 14px; }
 .oc-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; display: block; }
 .oc-input, .oc-textarea, .oc-date {
-  width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px;
+  width: 100%; border: 1.5px solid var(--border); border-radius: 13px; padding: 10px 12px;
   font-size: 16px; font-family: inherit; color: var(--ink); background: var(--input-bg);
 }
 .oc-input:focus, .oc-textarea:focus, .oc-date:focus { outline: 2px solid var(--ink); border-color: transparent; }
@@ -227,7 +269,7 @@ body::before {
 .oc-yearly-row input { width: 17px; height: 17px; }
 .oc-yearly-hint { font-size: 11px; color: var(--faint); margin-top: 4px; }
 .oc-btn-row { display: flex; gap: 8px; margin-top: 18px; }
-.oc-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; transition: transform .12s ease; }
+.oc-btn { flex: 1; padding: 12px; border-radius: 14px; border: none; font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; transition: transform .12s ease; }
 .oc-btn:active { transform: scale(.97); }
 .oc-btn-primary { background: var(--ink); color: var(--accent); }
 [data-theme="light"] .oc-btn-primary { background: #2c2760; }
@@ -245,8 +287,22 @@ body::before {
 .oc-swatches-inline .oc-sw { width: 22px; height: 22px; }
 .oc-catrow-del { margin-top: 10px; background: none; border: none; color: var(--danger); font-size: 12px; font-weight: 700; cursor: pointer; padding: 0; }
 
+/* ---- Month / year picker ---- */
+.oc-month-picker { max-width: 400px; }
+.oc-picker-year-row { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 16px; }
+.oc-picker-year { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 17px; color: var(--ink); min-width: 64px; text-align: center; }
+.oc-month-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.oc-month-cell {
+  padding: 14px 0; border-radius: 14px; border: 1.5px solid var(--border); background: var(--input-bg);
+  font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 14px; color: var(--ink); cursor: pointer;
+  transition: transform .12s ease;
+}
+.oc-month-cell:active { transform: scale(.95); }
+.oc-month-cell.sel { background: var(--ink); color: var(--accent); border-color: transparent; }
+[data-theme="light"] .oc-month-cell.sel { background: #2c2760; }
+
 /* ---- Confirm dialog ---- */
-.oc-confirm { max-width: 340px; border-radius: 20px; padding: 22px 20px; text-align: center; }
+.oc-confirm { max-width: 340px; border-radius: 24px; padding: 22px 20px; text-align: center; }
 .oc-confirm-title { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 16px; margin-bottom: 8px; }
 .oc-confirm-body { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 18px; }
 
@@ -282,7 +338,7 @@ body::before {
   background: radial-gradient(ellipse at top, var(--page-1) 0%, var(--page-2) 45%, var(--page-3) 100%);
   transition: opacity .45s ease;
 }
-.oc-splash-star { width: 34px; height: 34px; background: var(--accent); clip-path: polygon(50% 0%, 63% 35%, 100% 38%, 72% 61%, 82% 98%, 50% 78%, 18% 98%, 28% 61%, 0% 38%, 37% 35%); animation: oc-twinkle 1.4s ease-in-out infinite; }
+.oc-splash-star { width: 34px; height: 34px; font-size: 34px; color: var(--accent); animation: oc-twinkle 1.4s ease-in-out infinite; }
 @keyframes oc-twinkle { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .55; transform: scale(.85); } }
 .oc-splash-text { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 20px; color: var(--title-color); }
 .oc-splash.oc-hide { opacity: 0; pointer-events: none; }

@@ -36,9 +36,18 @@
 </head>
 <body>
 
+<!-- Single source of truth for every star glyph in the app (title mark, category
+     dots, calendar indicators, buttons, splash). Same polygon as icon-source.svg;
+     stroke+round-linejoin below softens the points into the "soft star" motif. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="star-soft" viewBox="0 0 512 512">
+    <polygon points="256,82 285.7,199.4 406.8,199.4 309.5,270.6 346.5,388 256,316.8 165.5,388 202.5,270.6 105.2,199.4 226.3,199.4" />
+  </symbol>
+</svg>
+
 <!-- Launch splash: static markup so it paints before any JS runs. app.js fades + removes it. -->
 <div class="oc-splash" id="splash">
-  <span class="oc-splash-star" aria-hidden="true"></span>
+  <svg class="oc-star-icon oc-splash-star" aria-hidden="true"><use href="#star-soft"></use></svg>
   <div class="oc-splash-text">My Constellation</div>
 </div>
 
