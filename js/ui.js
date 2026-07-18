@@ -9,17 +9,31 @@ import { escapeHtml, normalizeUrl, fromDateStr, occursOn, daysUntil, toDateStr }
 import { isHoliday } from "./holidays.js";
 import { SWATCHES, WEEKDAYS } from "./storage.js";
 
-export const APP_VERSION = "1.0.0";
+export const APP_VERSION = "1.1.0";
 
 export function catOf(categories, id) {
-  return categories.find((c) => c.id === id) || categories[categories.length - 1] || { name: "その他", color: "#C7CBE0" };
+  return categories.find((c) => c.id === id) || categories[categories.length - 1] || { name: "その他", color: "#D6D2DE" };
 }
 
-/** The one soft-star glyph used everywhere (title, chips, calendar, buttons, splash).
- *  `color` sets currentColor (via inline style) so each usage can tint it independently. */
+/** Filled 5-point star — used only where a category's *color* needs to read
+ *  clearly (chips, calendar day markers). `color` sets currentColor. */
 export function starIcon(extraClass = "", color = "") {
   const style = color ? ` style="color:${color}"` : "";
   return `<svg class="oc-star-icon ${extraClass}" aria-hidden="true"${style}><use href="#star-soft"></use></svg>`;
+}
+
+/** Open, lighter sparkle — the decorative/branding mark (title, "today"
+ *  button, section headers, splash). Never tied to a category color. */
+export function sparkleIcon(extraClass = "") {
+  return `<svg class="oc-sparkle-icon ${extraClass}" aria-hidden="true"><use href="#star-sparkle"></use></svg>`;
+}
+
+function iconGear(extraClass = "") {
+  return `<svg class="oc-line-icon ${extraClass}" aria-hidden="true"><use href="#icon-gear"></use></svg>`;
+}
+
+function iconGrip(extraClass = "") {
+  return `<svg class="oc-grip-icon ${extraClass}" aria-hidden="true"><use href="#icon-grip"></use></svg>`;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -29,30 +43,10 @@ export function renderHeader() {
   return `
     <div class="oc-header">
       <div class="oc-header-text">
-        <div class="oc-title">${starIcon("oc-title-mark")}My Constellation</div>
+        <div class="oc-title">${sparkleIcon("oc-title-mark")}My Constellation</div>
         <div class="oc-sub">日々を照らす、小さな星たちを集めて。</div>
       </div>
-      <button class="oc-icon-btn" data-action="toggle-search" aria-label="予定を検索">🔎</button>
-      <button class="oc-icon-btn" data-action="open-settings" aria-label="設定を開く">⚙️</button>
-    </div>
-  `;
-}
-
-export function renderSearchBar(state) {
-  if (!state.searchOpen) return "";
-  return `
-    <div class="oc-search">
-      <span class="oc-search-icon" aria-hidden="true">🔎</span>
-      <input
-        id="searchInput"
-        type="search"
-        inputmode="search"
-        placeholder="予定のタイトルやメモで検索"
-        value="${escapeHtml(state.searchQuery)}"
-        data-field="search"
-        aria-label="予定を検索"
-      />
-      ${state.searchQuery ? `<button class="oc-search-clear" data-action="clear-search" aria-label="検索をクリア">✕</button>` : ""}
+      <button class="oc-icon-btn" data-action="open-settings" aria-label="設定を開く">${iconGear()}</button>
     </div>
   `;
 }
@@ -72,7 +66,7 @@ export function renderChips(state) {
   return `
     <div class="oc-chips">
       ${chips}
-      <button class="oc-chip oc-manage-chip" data-action="open-catmanager">${starIcon("oc-chip-star")}色を編集</button>
+      <button class="oc-chip oc-manage-chip" data-action="open-catmanager">${sparkleIcon("oc-chip-star")}編集</button>
     </div>
   `;
 }
@@ -120,11 +114,11 @@ export function renderCalendarCard(state, today) {
       <div class="oc-cal-head">
         <button class="oc-nav-btn" data-action="prev-month" aria-label="前の月">‹</button>
         <div class="oc-cal-title-group">
+          <button class="oc-today-btn ${!isCurrentMonth || state.selectedDate ? "is-active" : ""}" data-action="go-today" aria-label="今日へ戻る">
+            ${sparkleIcon()}
+          </button>
           <button class="oc-cal-title" data-action="open-month-picker" aria-haspopup="dialog">
             ${monthLabel}<span class="oc-cal-chevron" aria-hidden="true">▾</span>
-          </button>
-          <button class="oc-today-btn ${!isCurrentMonth || state.selectedDate ? "is-active" : ""}" data-action="go-today" aria-label="今日へ戻る">
-            ${starIcon("oc-today-star")}
           </button>
         </div>
         <button class="oc-nav-btn" data-action="next-month" aria-label="次の月">›</button>
@@ -205,49 +199,17 @@ export function ticketCountdown(e, categories, nextDate, today) {
   });
 }
 
-export function ticketSearch(e, categories, occDate, today) {
-  const c = catOf(categories, e.category);
-  const dLeft = daysUntil(occDate, today);
-  const rel = dLeft === 0 ? "本日" : dLeft > 0 ? `あと${dLeft}日` : `${Math.abs(dLeft)}日前`;
-  return buildTicket({
-    id: e.id, color: c.color,
-    numHtml: `${occDate.getMonth() + 1}/${occDate.getDate()}`,
-    title: e.title,
-    metaHtml: `<div class="oc-ticket-meta">${escapeHtml(c.name)} ・ ${rel}</div>`,
-    badgeText: c.name,
-    url: e.url,
-  });
-}
-
 /* ---------------------------------------------------------------------- */
-/* List card: search results / selected day / today+week split           */
+/* List card: selected day / today+week                                   */
 /* ---------------------------------------------------------------------- */
 export function renderListCard(state, today, computed) {
-  const { searching, results, todays, upcoming, selectedEvents } = computed;
-
-  if (searching) {
-    return `
-      <div class="oc-card">
-        <div class="oc-section-title">
-          ${starIcon("oc-section-star")}検索結果（${results.length}件）
-          <select class="oc-sort-select" data-action="change-sort" aria-label="並び替え">
-            <option value="date-asc" ${state.sortOrder === "date-asc" ? "selected" : ""}>日付が近い順</option>
-            <option value="date-desc" ${state.sortOrder === "date-desc" ? "selected" : ""}>新しい順</option>
-            <option value="category" ${state.sortOrder === "category" ? "selected" : ""}>カテゴリー順</option>
-          </select>
-        </div>
-        ${results.length === 0
-          ? `<div class="oc-empty">見つかりませんでした</div>`
-          : results.map((r) => ticketSearch(r.event, state.categories, r.date, today)).join("")}
-      </div>
-    `;
-  }
+  const { todays, upcoming, selectedEvents } = computed;
 
   if (state.selectedDate) {
     const sel = state.selectedDate;
     return `
       <div class="oc-card">
-        <div class="oc-section-title">${starIcon("oc-section-star")}${sel.getMonth() + 1}月${sel.getDate()}日の予定</div>
+        <div class="oc-section-title">${sparkleIcon("oc-section-star")}${sel.getMonth() + 1}月${sel.getDate()}日の予定</div>
         ${selectedEvents.length === 0
           ? `<div class="oc-empty">この日の予定はまだありません</div>`
           : selectedEvents.map((e) => ticketToday(e, state.categories)).join("")}
@@ -260,16 +222,30 @@ export function renderListCard(state, today, computed) {
 
   return `
     <div class="oc-card">
-      <div class="oc-section-title">${starIcon("oc-section-star")}Today</div>
+      <div class="oc-section-title">${sparkleIcon("oc-section-star")}Today</div>
       ${todays.length === 0
         ? `<div class="oc-empty">今日の予定はありません</div>`
         : todays.map((e) => ticketToday(e, state.categories)).join("")}
     </div>
     <div class="oc-card">
-      <div class="oc-section-title">${starIcon("oc-section-star")}Up Next</div>
+      <div class="oc-section-title">${sparkleIcon("oc-section-star")}Up Next</div>
       ${upcoming.length === 0
         ? `<div class="oc-empty">1週間以内の予定はありません</div>`
         : upcoming.map((e) => ticketCountdown(e, state.categories, e._next, today)).join("")}
+    </div>
+  `;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Reusable color-picker block (preset swatches + native picker + hex)    */
+/* ---------------------------------------------------------------------- */
+function colorPickerHtml({ idAttr, current, presetAction, nativeIdAttr, hexIdAttr }) {
+  const swatches = SWATCHES.map((s) => `<div class="oc-sw ${current === s ? "sel" : ""}" style="background:${s}" data-action="${presetAction}" ${idAttr} data-color="${s}"></div>`).join("");
+  return `
+    <div class="oc-swatches">${swatches}</div>
+    <div class="oc-color-custom">
+      <input type="color" class="oc-color-native" id="${nativeIdAttr}" value="${current}" aria-label="色をカスタム選択" />
+      <input type="text" class="oc-hex-input" id="${hexIdAttr}" value="${current}" maxlength="7" placeholder="#RRGGBB" aria-label="カラーコードを入力" />
     </div>
   `;
 }
@@ -287,13 +263,12 @@ export function renderEventModal(state) {
   `).join("") + `<div class="oc-cat-pill" data-action="toggle-addcat">＋ 追加</div>`;
 
   const addCatBlock = state.addingCat ? `
-    <div>
-      <div class="oc-newcat">
-        <input class="oc-input" id="newCatName" placeholder="新しいカテゴリー名" />
-      </div>
-      <div class="oc-swatches">
-        ${SWATCHES.map((s) => `<div class="oc-sw ${state.newCatColor === s ? "sel" : ""}" style="background:${s}" data-action="pick-swatch" data-color="${s}"></div>`).join("")}
-      </div>
+    <div class="oc-newcat-panel">
+      <input class="oc-input" id="newCatName" placeholder="新しいカテゴリー名" />
+      ${colorPickerHtml({
+        idAttr: "", current: state.newCatColor, presetAction: "pick-swatch",
+        nativeIdAttr: "newCatColorNative", hexIdAttr: "newCatColorHex",
+      })}
       <div class="oc-btn-row">
         <button class="oc-btn oc-btn-primary" data-action="commit-newcat">このカテゴリーを作成</button>
       </div>
@@ -342,7 +317,7 @@ export function renderEventModal(state) {
 }
 
 /* ---------------------------------------------------------------------- */
-/* Category manager                                                       */
+/* Category manager (drag-to-reorder, rename, recolor, delete)            */
 /* ---------------------------------------------------------------------- */
 export function renderCatManager(state) {
   if (!state.catManagerOpen) return "";
@@ -351,14 +326,16 @@ export function renderCatManager(state) {
     return acc;
   }, {});
   const rows = state.categories.map((c) => `
-    <div class="oc-catrow">
+    <div class="oc-catrow" data-id="${c.id}">
       <div class="oc-catrow-head">
+        <button class="oc-drag-handle" data-id="${c.id}" aria-label="並び替え">${iconGrip()}</button>
         <input class="oc-input oc-catrow-name" data-catid="${c.id}" value="${escapeHtml(c.name)}" aria-label="カテゴリー名" />
         <span class="oc-catrow-count">${counts[c.id] || 0}件</span>
       </div>
-      <div class="oc-swatches-inline">
-        ${SWATCHES.map((s) => `<div class="oc-sw ${c.color === s ? "sel" : ""}" style="background:${s}" data-action="set-cat-color" data-id="${c.id}" data-color="${s}"></div>`).join("")}
-      </div>
+      ${colorPickerHtml({
+        idAttr: `data-id="${c.id}"`, current: c.color, presetAction: "set-cat-color",
+        nativeIdAttr: `catColorNative-${c.id}`, hexIdAttr: `catColorHex-${c.id}`,
+      })}
       ${state.categories.length > 1 ? `<button class="oc-catrow-del" data-action="ask-delete-cat" data-id="${c.id}">このカテゴリーを削除</button>` : ""}
     </div>
   `).join("");
@@ -367,7 +344,7 @@ export function renderCatManager(state) {
   <div class="oc-overlay" data-action="close-catmanager" role="presentation">
     <div class="oc-modal" data-action="stop" role="dialog" aria-modal="true" aria-label="カテゴリーを編集">
       <div class="oc-modal-title">カテゴリーを編集</div>
-      ${rows}
+      <div class="oc-catlist" id="catList">${rows}</div>
       <div class="oc-btn-row">
         <button class="oc-btn oc-btn-primary" data-action="close-catmanager">閉じる</button>
       </div>
@@ -399,17 +376,6 @@ export function renderSettings(state) {
             <div class="oc-settings-row-desc">予定とカテゴリーをすべて消去します</div>
           </div>
           <button class="oc-btn oc-btn-danger" style="flex:none;" data-action="ask-reset-all">削除</button>
-        </div>
-      </div>
-
-      <div class="oc-settings-section">
-        <div class="oc-settings-heading">テーマ</div>
-        <div class="oc-settings-row">
-          <div class="oc-settings-row-label">表示</div>
-          <div class="oc-theme-toggle">
-            <button class="${state.theme === "dark" ? "active" : ""}" data-action="set-theme" data-theme="dark">夜空</button>
-            <button class="${state.theme === "light" ? "active" : ""}" data-action="set-theme" data-theme="light">やわらか</button>
-          </div>
         </div>
       </div>
 
@@ -482,7 +448,7 @@ export function renderToast(state) {
 export function splashHtml() {
   return `
     <div class="oc-splash" id="splash">
-      ${starIcon("oc-splash-star")}
+      ${sparkleIcon("oc-splash-star")}
       <div class="oc-splash-text">My Constellation</div>
     </div>
   `;

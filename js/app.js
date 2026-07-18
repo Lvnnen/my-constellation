@@ -4,16 +4,16 @@
  * render loop. Templates live in ui.js, persistence lives in storage.js,
  * date math lives in utils.js / holidays.js — this file just connects them.
  */
-import { uid, toDateStr, fromDateStr, startOfDay, nextOccurrence, occursOn, daysUntil, debounce } from "./utils.js";
+import { uid, toDateStr, fromDateStr, startOfDay, nextOccurrence, occursOn, debounce } from "./utils.js";
 import {
   DEFAULT_CATEGORIES, SWATCHES,
   STORAGE_EVENTS, STORAGE_CATEGORIES, STORAGE_FILTERS, STORAGE_DRAFT,
-  loadJSON, saveJSON, removeKey, loadTheme, saveTheme,
+  loadJSON, saveJSON, removeKey,
   exportBackup, parseBackupFile,
 } from "./storage.js";
 import {
   APP_VERSION, catOf,
-  renderHeader, renderSearchBar, renderChips, renderCalendarCard, renderMonthPicker, renderListCard,
+  renderHeader, renderChips, renderCalendarCard, renderMonthPicker, renderListCard,
   renderEventModal, renderCatManager, renderSettings, renderConfirm, renderToast,
 } from "./ui.js";
 
@@ -26,19 +26,15 @@ const state = {
   activeFilters: loadJSON(STORAGE_FILTERS, DEFAULT_CATEGORIES.map((c) => c.id)),
   cursor: startOfDay(new Date()),
   selectedDate: null,
-  navDirection: null,
+  navDirection: null,     // 'prev' | 'next' | 'jump' | null — drives the calendar's motion
   monthPickerOpen: false,
   pickerYear: new Date().getFullYear(),
-  editing: null,
+  editing: null,          // the event currently open in the add/edit sheet, or null
   addingCat: false,
   newCatColor: SWATCHES[0],
   catManagerOpen: false,
   settingsOpen: false,
-  searchOpen: false,
-  searchQuery: "",
-  sortOrder: "date-asc",
-  theme: loadTheme(),
-  confirm: null,
+  confirm: null,          // { title, body, confirmLabel, onConfirm } or null
   toast: null,
   version: APP_VERSION,
 };
@@ -59,24 +55,6 @@ function persistFilters() { saveJSON(STORAGE_FILTERS, state.activeFilters); }
 function computeListData(today) {
   const activeSet = new Set(state.activeFilters);
   const visibleEvents = state.events.filter((e) => activeSet.has(e.category));
-  const q = state.searchQuery.trim().toLowerCase();
-  const searching = state.searchOpen && q.length > 0;
-
-  if (searching) {
-    let results = state.events
-      .filter((e) => (e.title || "").toLowerCase().includes(q) || (e.note || "").toLowerCase().includes(q))
-      .map((e) => ({ event: e, date: nextOccurrence(e, today) }));
-
-    if (state.sortOrder === "date-asc") {
-      results.sort((a, b) => Math.abs(daysUntil(a.date, today)) - Math.abs(daysUntil(b.date, today)));
-    } else if (state.sortOrder === "date-desc") {
-      results.sort((a, b) => b.date - a.date);
-    } else if (state.sortOrder === "category") {
-      const order = state.categories.map((c) => c.id);
-      results.sort((a, b) => order.indexOf(a.event.category) - order.indexOf(b.event.category) || a.date - b.date);
-    }
-    return { searching: true, results, todays: [], upcoming: [], selectedEvents: [] };
-  }
 
   const todays = visibleEvents.filter((e) => occursOn(e, today));
   const weekLater = new Date(today);
@@ -87,18 +65,16 @@ function computeListData(today) {
     .sort((a, b) => a._next - b._next);
   const selectedEvents = state.selectedDate ? visibleEvents.filter((e) => occursOn(e, state.selectedDate)) : [];
 
-  return { searching: false, results: [], todays, upcoming, selectedEvents };
+  return { todays, upcoming, selectedEvents };
 }
 
 function renderNow() {
   const today = startOfDay(new Date());
-  document.documentElement.setAttribute("data-theme", state.theme);
   const computed = computeListData(today);
 
   appEl.innerHTML = `
     ${renderHeader()}
     <div class="oc-wrap">
-      ${renderSearchBar(state)}
       ${renderChips(state)}
       ${renderCalendarCard(state, today)}
       ${renderListCard(state, today, computed)}
@@ -162,16 +138,69 @@ const scheduleDraftSave = debounce(() => {
   if (state.editing) saveJSON(STORAGE_DRAFT, state.editing);
 }, 400);
 
-const debouncedSearchRender = debounce(() => {
-  const el = document.getElementById("searchInput");
-  const pos = el ? el.selectionStart : null;
-  render();
-  const el2 = document.getElementById("searchInput");
-  if (el2) {
-    el2.focus();
-    if (pos != null) el2.setSelectionRange(pos, pos);
+/* ---------------------------------------------------------------------- */
+/* Category drag-to-reorder                                                */
+/* A lightweight FLIP-style reorder: the dragged row follows the pointer   */
+/* via `transform`, sibling rows slide into their new slot with a CSS      */
+/* transition, and the array only commits once on pointerup — no re-render */
+/* mid-gesture, so the motion stays perfectly smooth.                      */
+/* ---------------------------------------------------------------------- */
+let dragCtx = null;
+
+function startCategoryDrag(handle) {
+  const row = handle.closest(".oc-catrow");
+  const list = document.getElementById("catList");
+  if (!row || !list) return;
+  const rowEls = Array.from(list.querySelectorAll(".oc-catrow"));
+  const rects = new Map(rowEls.map((el) => [el.dataset.id, el.getBoundingClientRect()]));
+  row.classList.add("dragging");
+  dragCtx = { row, rowEls, rects, draggedId: row.dataset.id, startY: null, finalOrder: null };
+}
+
+function onCategoryDragMove(e) {
+  if (!dragCtx) return;
+  const { row, rowEls, rects, draggedId } = dragCtx;
+  if (dragCtx.startY == null) dragCtx.startY = e.clientY;
+  const dy = e.clientY - dragCtx.startY;
+  row.style.transform = `translateY(${dy}px)`;
+
+  const orderedIds = rowEls.map((el) => el.dataset.id);
+  const n = orderedIds.length;
+  const slotTops = orderedIds.map((id) => rects.get(id).top);
+  const draggedRect = rects.get(draggedId);
+  const draggedCenter = draggedRect.top + dy + draggedRect.height / 2;
+
+  let targetIndex = 0;
+  for (let i = 0; i < n; i++) {
+    if (draggedCenter > slotTops[i] + draggedRect.height / 2) targetIndex = i + 1;
   }
-}, 150);
+  targetIndex = Math.max(0, Math.min(n - 1, targetIndex));
+
+  const others = orderedIds.filter((id) => id !== draggedId);
+  others.forEach((id, k) => {
+    const slot = k < targetIndex ? k : k + 1;
+    const el = rowEls.find((r) => r.dataset.id === id);
+    const shift = slotTops[slot] - rects.get(id).top;
+    el.style.transition = "transform .18s ease";
+    el.style.transform = shift ? `translateY(${shift}px)` : "";
+  });
+
+  dragCtx.finalOrder = [...others];
+  dragCtx.finalOrder.splice(targetIndex, 0, draggedId);
+}
+
+function endCategoryDrag() {
+  if (!dragCtx) return;
+  const { rowEls, row, finalOrder } = dragCtx;
+  rowEls.forEach((el) => { el.style.transition = ""; el.style.transform = ""; });
+  row.classList.remove("dragging");
+  if (finalOrder) {
+    state.categories = finalOrder.map((id) => state.categories.find((c) => c.id === id));
+    persistCategories();
+  }
+  dragCtx = null;
+  render();
+}
 
 /* ---------------------------------------------------------------------- */
 /* Click delegation                                                       */
@@ -184,19 +213,6 @@ document.addEventListener("click", (e) => {
   if (action === "edit-event") return; // handled via long-press, see pointer handlers below
 
   switch (action) {
-    case "toggle-search": {
-      state.searchOpen = !state.searchOpen;
-      if (!state.searchOpen) state.searchQuery = "";
-      render();
-      if (state.searchOpen) document.getElementById("searchInput")?.focus();
-      break;
-    }
-    case "clear-search": {
-      state.searchQuery = "";
-      render();
-      document.getElementById("searchInput")?.focus();
-      break;
-    }
     case "open-settings": state.settingsOpen = true; render(); break;
     case "close-settings": state.settingsOpen = false; render(); break;
 
@@ -266,7 +282,11 @@ document.addEventListener("click", (e) => {
       break;
     }
     case "toggle-addcat": state.addingCat = !state.addingCat; render(); break;
-    case "pick-swatch": state.newCatColor = t.dataset.color; render(); break;
+    case "pick-swatch": {
+      state.newCatColor = t.dataset.color;
+      render();
+      break;
+    }
     case "commit-newcat": {
       const nameEl = document.getElementById("newCatName");
       const name = nameEl ? nameEl.value.trim() : "";
@@ -341,12 +361,6 @@ document.addEventListener("click", (e) => {
       break;
     }
 
-    case "set-theme": {
-      state.theme = t.dataset.theme;
-      saveTheme(state.theme);
-      render();
-      break;
-    }
     case "export-backup": exportBackup(state.events, state.categories); showToast("バックアップを書き出しました"); break;
     case "trigger-import": document.getElementById("importFileInput")?.click(); break;
 
@@ -383,18 +397,46 @@ document.addEventListener("click", (e) => {
 /* Input delegation (typing — mutate state without a full re-render so   */
 /* focus/cursor position in the field being typed into is never lost)    */
 /* ---------------------------------------------------------------------- */
+const HEX_RE = /^#[0-9A-Fa-f]{6}$/;
+
 document.addEventListener("input", (e) => {
+  const id = e.target.id || "";
+
   if (e.target.classList && e.target.classList.contains("oc-catrow-name")) {
-    const id = e.target.dataset.catid;
-    state.categories = state.categories.map((c) => (c.id === id ? { ...c, name: e.target.value } : c));
+    const catId = e.target.dataset.catid;
+    state.categories = state.categories.map((c) => (c.id === catId ? { ...c, name: e.target.value } : c));
     persistCategories();
     return;
   }
-  if (e.target.id === "searchInput") {
-    state.searchQuery = e.target.value;
-    debouncedSearchRender();
+
+  // Existing-category custom color (native picker or typed hex), keyed by suffix after the dash.
+  if (id.startsWith("catColorNative-") || id.startsWith("catColorHex-")) {
+    const catId = id.split("-").slice(1).join("-");
+    const value = e.target.value;
+    const valid = id.startsWith("catColorNative-") ? true : HEX_RE.test(value);
+    if (!valid) return;
+    state.categories = state.categories.map((c) => (c.id === catId ? { ...c, color: value } : c));
+    persistCategories();
+    const nativeEl = document.getElementById(`catColorNative-${catId}`);
+    const hexEl = document.getElementById(`catColorHex-${catId}`);
+    if (nativeEl && nativeEl !== e.target) nativeEl.value = value;
+    if (hexEl && hexEl !== e.target) hexEl.value = value;
     return;
   }
+
+  // New-category custom color, while the "add category" panel is open.
+  if (id === "newCatColorNative" || id === "newCatColorHex") {
+    const value = e.target.value;
+    const valid = id === "newCatColorNative" ? true : HEX_RE.test(value);
+    if (!valid) return;
+    state.newCatColor = value;
+    const nativeEl = document.getElementById("newCatColorNative");
+    const hexEl = document.getElementById("newCatColorHex");
+    if (nativeEl && nativeEl !== e.target) nativeEl.value = value;
+    if (hexEl && hexEl !== e.target) hexEl.value = value;
+    return;
+  }
+
   const field = e.target.dataset && e.target.dataset.field;
   if (!field || !state.editing) return;
   if (field === "yearly") {
@@ -427,16 +469,12 @@ document.addEventListener("change", (e) => {
         render();
       })
       .catch(() => showToast("ファイルを読み込めませんでした"));
-    return;
-  }
-  if (e.target.matches && e.target.matches(".oc-sort-select")) {
-    state.sortOrder = e.target.value;
-    render();
   }
 });
 
 /* ---------------------------------------------------------------------- */
-/* Long-press to edit (tickets only) + keyboard shortcuts                 */
+/* Pointer gestures: long-press to edit a ticket, drag-handle to reorder   */
+/* categories, plus the keyboard shortcuts that close overlays.           */
 /* ---------------------------------------------------------------------- */
 let pressTimer = null;
 let pressTarget = null;
@@ -449,6 +487,12 @@ function clearPress() {
 }
 
 document.addEventListener("pointerdown", (e) => {
+  const handle = e.target.closest(".oc-drag-handle");
+  if (handle) {
+    e.preventDefault();
+    startCategoryDrag(handle);
+    return;
+  }
   const t = e.target.closest('[data-action="edit-event"]');
   if (!t || e.target.closest("a")) return;
   pressTarget = t;
@@ -459,9 +503,10 @@ document.addEventListener("pointerdown", (e) => {
     pressTimer = null;
   }, 480);
 });
-document.addEventListener("pointerup", clearPress);
-document.addEventListener("pointercancel", clearPress);
-document.addEventListener("pointerleave", clearPress, true);
+document.addEventListener("pointermove", (e) => { if (dragCtx) onCategoryDragMove(e); });
+document.addEventListener("pointerup", () => { if (dragCtx) { endCategoryDrag(); return; } clearPress(); });
+document.addEventListener("pointercancel", () => { if (dragCtx) { endCategoryDrag(); return; } clearPress(); });
+document.addEventListener("pointerleave", (e) => { if (!dragCtx) clearPress(); }, true);
 
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;

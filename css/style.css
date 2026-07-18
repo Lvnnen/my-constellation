@@ -1,80 +1,57 @@
 /* ==========================================================================
    My Constellation — stylesheet
-   A quiet, Apple-like night-sky UI. Navy & gold, generous whitespace,
-   soft motion. Colors live in CSS variables so the light/dark toggle
-   in Settings only ever changes variable values, never structure.
+   A quiet, Apple-like "collect the stars" UI. One default palette (Sea Blue,
+   Shell White, Linen, Venice, Shine, Accent Red), all expressed as CSS
+   custom properties so a future theme only ever means new variable values —
+   never new markup or structure.
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Zen+Maru+Gothic:wght@400;500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap');
 
-/* ---- Design tokens ---- */
-:root,
-[data-theme="dark"] {
-  --page-1: #241f52;
-  --page-2: #12173f;
-  --page-3: #05070f;
-  --star-opacity: 1;
+/* ---- Design tokens (single default theme) ---- */
+:root {
+  /* Page background: Shell White warming very slightly toward Linen. */
+  --bg-1: #f7f4ef;
+  --bg-2: #fbf1d9;
 
-  --title-color: #f2f1fb;
-  --sub-color: #aeb4e8;
+  /* Text — Venice, darkened as needed for AA contrast at each weight of use. */
+  --title-color: #2e3050;
+  --sub-color: #767a9e;
+  --ink: #3e4166;
+  --muted: #767a9e;
+  --faint: #aeb2cf;
 
-  --ink: #241e46;
-  --muted: #8d89b8;
-  --faint: #aca8d9;
-
-  --card-bg: rgba(238, 240, 251, 0.72);
-  --card-border: rgba(255, 255, 255, 0.4);
-  --input-bg: #f7f6fd;
-  --border: #e2dff6;
-  --chip-bg: rgba(255, 255, 255, 0.08);
-  --chip-border: rgba(255, 255, 255, 0.14);
-  --nav-btn-bg: #e7e6f7;
-  --ghost-btn-bg: #e7e6f7;
-  --overlay: rgba(5, 8, 20, 0.6);
-
-  --accent: #ffd874;
-  --accent-ink: #241e46;
-  --danger: #e63950;
-  --danger-bg: #fff0f2;
-  --sun-holiday: #e2585f;
-  --saturday: #5b7fe0;
-
-  --shadow-card: 0 8px 28px rgba(2, 4, 20, 0.35);
-  --shadow-fab: 0 6px 20px rgba(255, 216, 116, 0.45);
-}
-
-[data-theme="light"] {
-  --page-1: #eef1fb;
-  --page-2: #e6eafc;
-  --page-3: #dde3f8;
-  --star-opacity: 0.35;
-
-  --title-color: #241e46;
-  --sub-color: #6b6797;
-
-  --ink: #241e46;
-  --muted: #767299;
-  --faint: #9a96c2;
-
-  --card-bg: rgba(255, 255, 255, 0.78);
-  --card-border: rgba(255, 255, 255, 0.9);
-  --input-bg: #f7f7fd;
-  --border: #e6e4f5;
+  /* Surfaces */
+  --card-bg: #ffffff;
+  --card-border: #eee9dd;
+  --input-bg: #fbfaf6;
+  --border: #e7e1d3;
   --chip-bg: #ffffff;
-  --chip-border: #e2dff6;
-  --nav-btn-bg: #f0f0fa;
-  --ghost-btn-bg: #f0f0fa;
-  --overlay: rgba(30, 32, 60, 0.35);
+  --chip-border: #e7e1d3;
+  --nav-btn-bg: #f1eee6;
+  --ghost-btn-bg: #f1eee6;
+  --overlay: rgba(46, 48, 80, 0.32);
 
-  --accent: #e8b84b;
-  --accent-ink: #241e46;
-  --danger: #e63950;
-  --danger-bg: #fff0f2;
-  --sun-holiday: #d94750;
-  --saturday: #4a6bd1;
+  /* Brand accent — Shine (gold) stays the "star" color for CTAs and glow. */
+  --accent: #f5c74d;
+  --accent-ink: #3e4166;
 
-  --shadow-card: 0 6px 20px rgba(30, 32, 60, 0.1);
-  --shadow-fab: 0 6px 18px rgba(232, 184, 75, 0.45);
+  /* Sea Blue — secondary interactive accent. -ink variant is darkened for
+     use as small text (Saturday dates, links) where the raw tint is too light. */
+  --sea: #8dcbd8;
+  --sea-ink: #4c97a3;
+
+  /* Accent Red — same light/ink split, used for Sundays, holidays, danger actions. */
+  --red: #f2877a;
+  --red-ink: #d96a5c;
+  --danger: #d96a5c;
+  --danger-bg: #fbeae7;
+
+  --sun-holiday: var(--red-ink);
+  --saturday: var(--sea-ink);
+
+  --shadow-card: 0 10px 24px rgba(62, 65, 102, 0.09);
+  --shadow-fab: 0 8px 20px rgba(245, 199, 77, 0.5);
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -83,33 +60,30 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   font-family: 'Noto Sans JP', sans-serif;
-  background: radial-gradient(ellipse at top, var(--page-1) 0%, var(--page-2) 45%, var(--page-3) 100%);
-  background-attachment: fixed;
+  background: radial-gradient(ellipse at top, var(--bg-2) 0%, var(--bg-1) 55%);
   color: var(--ink);
   min-height: 100vh;
   min-height: 100dvh;
   position: relative;
-  transition: background 0.4s ease;
 }
 
+/* A faint constellation of dots — the night-sky motif kept just barely
+   present behind the light palette, rather than a literal dark sky. */
 body::before {
   content: "";
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  opacity: var(--star-opacity);
-  transition: opacity 0.4s ease;
+  opacity: .5;
   background-image:
-    radial-gradient(1.6px 1.6px at 10% 15%, rgba(255,255,255,.85), transparent),
-    radial-gradient(1.2px 1.2px at 25% 40%, rgba(255,255,255,.6), transparent),
-    radial-gradient(1.8px 1.8px at 40% 10%, rgba(255,216,116,.8), transparent),
-    radial-gradient(1.3px 1.3px at 60% 30%, rgba(255,255,255,.7), transparent),
-    radial-gradient(1.5px 1.5px at 75% 60%, rgba(255,255,255,.55), transparent),
-    radial-gradient(1.4px 1.4px at 85% 20%, rgba(255,216,116,.7), transparent),
-    radial-gradient(1.2px 1.2px at 15% 75%, rgba(255,255,255,.6), transparent),
-    radial-gradient(1.6px 1.6px at 55% 85%, rgba(255,255,255,.5), transparent),
-    radial-gradient(1.3px 1.3px at 90% 80%, rgba(255,255,255,.65), transparent),
-    radial-gradient(1.5px 1.5px at 33% 92%, rgba(255,255,255,.5), transparent);
+    radial-gradient(1.6px 1.6px at 12% 18%, rgba(62,65,102,.14), transparent),
+    radial-gradient(1.3px 1.3px at 30% 45%, rgba(62,65,102,.10), transparent),
+    radial-gradient(1.8px 1.8px at 45% 12%, rgba(245,199,77,.28), transparent),
+    radial-gradient(1.3px 1.3px at 62% 32%, rgba(62,65,102,.10), transparent),
+    radial-gradient(1.5px 1.5px at 78% 62%, rgba(62,65,102,.09), transparent),
+    radial-gradient(1.4px 1.4px at 88% 22%, rgba(245,199,77,.22), transparent),
+    radial-gradient(1.3px 1.3px at 18% 78%, rgba(62,65,102,.10), transparent),
+    radial-gradient(1.6px 1.6px at 56% 88%, rgba(62,65,102,.08), transparent);
   background-repeat: repeat;
-  background-size: 340px 340px;
+  background-size: 380px 380px;
 }
 
 #app {
@@ -122,15 +96,27 @@ body::before {
 @media (prefers-reduced-motion: reduce) { #app { animation: none; } }
 
 /* ---- Header ---- */
-.oc-header { max-width: 640px; margin: 0 auto 18px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.oc-header { max-width: 640px; margin: 0 auto 20px; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .oc-header-text { flex: 1; min-width: 0; }
 .oc-title { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 32px; letter-spacing: .01em; display: flex; align-items: center; gap: 10px; color: var(--title-color); }
 .oc-sub { font-size: 12.5px; color: var(--sub-color); margin-top: 4px; font-weight: 500; }
+.oc-icon-btn {
+  width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--chip-border);
+  background: var(--chip-bg); color: var(--muted); cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .15s ease, background .15s ease;
+}
+.oc-icon-btn:active { transform: scale(.92); background: var(--ghost-btn-bg); }
 
-/* ---- Unified soft-star glyph (title, chips, calendar, buttons, splash) ----
-   One <symbol> (index.html) reused everywhere via <use>. The stroke with a
-   round linejoin is what turns the straight-edged polygon into a soft,
-   rounded star instead of a sharp one — no separate shape needed per use. */
+.oc-wrap { max-width: 640px; margin: 0 auto; }
+
+/* ---- Icon system ----
+   Three glyph families share one visual language (currentColor + round joins):
+   - oc-star-icon    filled 5-point star — carries a category's color
+   - oc-sparkle-icon open 4-point sparkle — decorative/branding accents
+   - oc-line-icon    stroked line-art (gear) — system chrome
+   - oc-grip-icon    filled dots — drag handle
+*/
 .oc-star-icon {
   width: 1em; height: 1em; flex-shrink: 0;
   fill: currentColor; stroke: currentColor;
@@ -138,44 +124,45 @@ body::before {
   color: var(--accent);
   overflow: visible;
 }
-.oc-title-mark { font-size: 17px; filter: drop-shadow(0 0 5px rgba(255,216,116,.55)); }
-.oc-icon-btn { width: 38px; height: 38px; border-radius: 50%; border: none; background: var(--chip-bg); border: 1px solid var(--chip-border); color: var(--sub-color); font-size: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform .15s ease, background .15s ease; }
-.oc-icon-btn:active { transform: scale(.92); }
-
-.oc-wrap { max-width: 640px; margin: 0 auto; }
-
-/* ---- Search ---- */
-.oc-search { position: relative; margin-bottom: 14px; }
-.oc-search input {
-  width: 100%; border: 1px solid var(--chip-border); border-radius: 14px; padding: 11px 14px 11px 38px;
-  font-size: 14px; font-family: inherit; background: var(--chip-bg); color: var(--title-color);
+.oc-sparkle-icon {
+  width: 1em; height: 1em; flex-shrink: 0;
+  fill: none; stroke: currentColor;
+  stroke-width: 1.7; stroke-linejoin: round; stroke-linecap: round;
+  color: var(--accent);
+  overflow: visible;
 }
-[data-theme="light"] .oc-search input { color: var(--ink); }
-.oc-search input::placeholder { color: var(--sub-color); opacity: .8; }
-.oc-search input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
-.oc-search-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 14px; opacity: .6; pointer-events: none; }
-.oc-search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: none; background: none; color: var(--sub-color); font-size: 16px; cursor: pointer; padding: 6px; }
+.oc-line-icon {
+  width: 20px; height: 20px;
+  fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+.oc-grip-icon { width: 18px; height: 18px; fill: currentColor; stroke: none; color: var(--faint); }
+
+.oc-title-mark { font-size: 19px; filter: drop-shadow(0 0 4px rgba(245,199,77,.4)); }
 
 /* ---- Filter chips ---- */
-.oc-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 16px; align-items: center; }
-.oc-chip { font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; font-weight: 700; padding: 6px 12px 6px 10px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; gap: 6px; background: var(--chip-bg); color: var(--sub-color); user-select: none; border: 1px solid var(--chip-border); transition: transform .12s ease; }
+.oc-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; align-items: center; }
+.oc-chip {
+  font-family: 'Zen Maru Gothic', sans-serif; font-size: 12.5px; font-weight: 700;
+  padding: 7px 13px 7px 11px; border-radius: 999px; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  background: var(--chip-bg); color: var(--muted); user-select: none;
+  border: 1px solid var(--chip-border); transition: transform .12s ease, box-shadow .15s ease;
+}
 .oc-chip:active { transform: scale(.96); }
-.oc-chip-star { font-size: 9px; }
-.oc-chip.active { color: var(--ink); background: var(--card-bg); box-shadow: 0 2px 10px rgba(0,0,0,.18); border-color: transparent; }
-.oc-manage-chip { border: 1px dashed var(--chip-border); color: var(--sub-color); background: transparent; }
+.oc-chip-star { font-size: 10px; }
+.oc-chip.active { color: var(--title-color); border-color: transparent; box-shadow: 0 3px 10px rgba(62,65,102,.14); }
+.oc-manage-chip { border-style: dashed; color: var(--muted); background: transparent; }
 
 /* ---- Cards ---- */
 .oc-card {
-  background: var(--card-bg); border-radius: 22px; padding: 18px;
+  background: var(--card-bg); border-radius: 22px; padding: 20px;
   box-shadow: var(--shadow-card); margin-bottom: 16px;
   border: 1px solid var(--card-border);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  transition: background .4s ease;
 }
 
 /* ---- Calendar ---- */
-.oc-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 8px; }
+.oc-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 8px; }
 .oc-cal-title-group { display: flex; align-items: center; gap: 6px; }
 .oc-cal-title {
   font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 17px; color: var(--ink);
@@ -185,13 +172,13 @@ body::before {
 .oc-cal-title:active { transform: scale(.96); background: var(--ghost-btn-bg); }
 .oc-cal-chevron { font-size: 10px; color: var(--faint); }
 .oc-today-btn {
-  width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--ghost-btn-bg);
+  width: 30px; height: 30px; border-radius: 50%; border: none; background: none;
   color: var(--faint); cursor: pointer; display: flex; align-items: center; justify-content: center;
-  font-size: 14px; transition: transform .15s ease, color .15s ease;
+  font-size: 16px; transition: transform .15s ease, color .15s ease;
 }
-.oc-today-btn:active { transform: scale(.9); }
+.oc-today-btn:active { transform: scale(.88); }
 .oc-today-btn.is-active { color: var(--accent); }
-.oc-nav-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--nav-btn-bg); color: var(--ink); font-size: 16px; cursor: pointer; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.oc-nav-btn { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--nav-btn-bg); color: var(--ink); font-size: 16px; cursor: pointer; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .oc-nav-btn:active { background: var(--border); }
 .oc-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
 .oc-grid.nav-next { animation: oc-slide-left .3s cubic-bezier(.2,.8,.2,1) both; }
@@ -200,45 +187,56 @@ body::before {
 @keyframes oc-slide-left { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
 @keyframes oc-slide-right { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .oc-grid.nav-next, .oc-grid.nav-prev, .oc-grid.nav-jump { animation: none; } }
-.oc-wd { text-align: center; font-size: 11px; font-weight: 700; color: var(--faint); padding-bottom: 4px; }
+.oc-wd { text-align: center; font-size: 11px; font-weight: 700; color: var(--faint); padding-bottom: 6px; }
 .oc-wd.sun { color: var(--sun-holiday); } .oc-wd.sat { color: var(--saturday); }
-.oc-day { position: relative; aspect-ratio: 1; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border: none; background: transparent; font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 500; color: var(--ink); gap: 2px; transition: background .15s ease; }
+.oc-day {
+  position: relative; aspect-ratio: 1; border-radius: 14px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; border: none; background: transparent;
+  font-family: 'Zen Maru Gothic', sans-serif; font-size: 13px; font-weight: 500; color: var(--ink); gap: 3px;
+  transition: background .15s ease;
+}
 .oc-day.empty { cursor: default; visibility: hidden; }
 .oc-day.selected { background: var(--ink); }
-[data-theme="light"] .oc-day.selected { background: #2c2760; }
 .oc-day .num.sun, .oc-day .num.holiday { color: var(--sun-holiday); }
 .oc-day .num.sat { color: var(--saturday); }
 .oc-day.selected .num { color: #fff; }
 .oc-day.today:not(.selected) { box-shadow: 0 0 0 2px var(--accent); animation: oc-pulse 2.2s ease-in-out infinite; }
-@keyframes oc-pulse { 0%,100% { box-shadow: 0 0 0 2px var(--accent); } 50% { box-shadow: 0 0 0 5px rgba(255,216,116,.4); } }
+@keyframes oc-pulse { 0%,100% { box-shadow: 0 0 0 2px var(--accent); } 50% { box-shadow: 0 0 0 5px rgba(245,199,77,.35); } }
 @media (prefers-reduced-motion: reduce) { .oc-day.today { animation: none; } }
-.oc-day-stars { display: flex; align-items: center; gap: 1.5px; height: 8px; }
-.oc-day-star { font-size: 6px; }
-.oc-day-star-plus { font-size: 8px; font-weight: 700; color: var(--faint); line-height: 1; }
+.oc-day-stars { display: flex; align-items: center; gap: 2px; height: 9px; }
+.oc-day-star { font-size: 7px; }
+.oc-day-star-plus { font-size: 9px; font-weight: 700; color: var(--faint); line-height: 1; }
 .oc-day.selected .oc-day-star-plus { color: #fff; }
 
-/* ---- Section titles / split today+upcoming ---- */
-.oc-section-title { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 14px; margin-bottom: 10px; color: var(--ink); display: flex; align-items: center; gap: 6px; }
-.oc-sort-select {
-  margin-left: auto; font-family: 'Noto Sans JP', sans-serif; font-size: 11.5px; font-weight: 500;
-  border: 1px solid var(--border); border-radius: 8px; padding: 4px 6px; background: var(--input-bg); color: var(--muted);
-}
+/* ---- Section titles ---- */
+.oc-section-title { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 15px; margin-bottom: 12px; color: var(--title-color); display: flex; align-items: center; gap: 7px; }
 
 /* ---- Tickets ---- */
-.oc-ticket { position: relative; display: flex; gap: 12px; align-items: center; background: var(--input-bg); border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; border-left: 5px solid var(--c); transition: background .15s ease, transform .12s ease; }
+.oc-ticket {
+  position: relative; display: flex; gap: 12px; align-items: center;
+  background: var(--input-bg); border-radius: 16px; padding: 13px 15px; margin-bottom: 8px;
+  cursor: pointer; border-left: 4px solid var(--c);
+  transition: background .15s ease, transform .12s ease;
+}
 .oc-ticket:active { background: var(--border); }
 .oc-ticket.oc-pressing { transform: scale(.98); }
 .oc-ticket-date { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; font-size: 12px; text-align: center; color: color-mix(in srgb, var(--c) 55%, var(--ink) 45%); min-width: 40px; line-height: 1.2; }
-.oc-ticket-date .num { font-size: 19px; display: block; }
+.oc-ticket-date .num { font-size: 19px; display: flex; align-items: center; justify-content: center; }
 .oc-ticket-body { flex: 1; min-width: 0; }
-.oc-ticket-title { font-weight: 700; font-size: 14.5px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oc-ticket-title { font-weight: 700; font-size: 14.5px; color: var(--title-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .oc-ticket-meta { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
-.oc-ticket-link { font-size: 11px; color: var(--saturday); margin-top: 2px; display: inline-block; }
-.oc-ticket-badge { font-size: 10.5px; font-weight: 700; color: var(--ink); background: var(--c); padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
-.oc-empty { text-align: center; padding: 28px 10px; color: var(--faint); font-size: 13px; }
+.oc-ticket-link { font-size: 11px; color: var(--sea-ink); margin-top: 2px; display: inline-block; }
+.oc-ticket-badge { font-size: 10.5px; font-weight: 700; color: var(--ink); background: var(--c); padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.oc-empty { text-align: center; padding: 30px 10px; color: var(--faint); font-size: 13px; }
 
 /* ---- FAB ---- */
-.oc-fab { position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom)); width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 26px; border: none; box-shadow: var(--shadow-fab); cursor: pointer; z-index: 30; display: flex; align-items: center; justify-content: center; transition: transform .15s ease; }
+.oc-fab {
+  position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom));
+  width: 58px; height: 58px; border-radius: 50%; background: var(--accent); color: var(--accent-ink);
+  font-size: 26px; border: none; box-shadow: var(--shadow-fab); cursor: pointer; z-index: 30;
+  display: flex; align-items: center; justify-content: center; transition: transform .15s ease;
+}
 .oc-fab:active { transform: scale(.94); }
 
 /* ---- Modal / overlay ---- */
@@ -246,51 +244,74 @@ body::before {
 @keyframes oc-overlay-in { from { opacity: 0; } to { opacity: 1; } }
 .oc-modal {
   background: var(--card-bg); width: 100%; max-width: 480px; border-radius: 26px 26px 0 0;
-  padding: 20px 18px max(26px, env(safe-area-inset-bottom)); max-height: 88vh; overflow-y: auto;
-  border: 1px solid var(--card-border); border-bottom: none;
-  backdrop-filter: blur(28px) saturate(160%); -webkit-backdrop-filter: blur(28px) saturate(160%);
+  padding: 22px 20px max(28px, env(safe-area-inset-bottom)); max-height: 88vh; overflow-y: auto;
   animation: oc-modal-in .3s cubic-bezier(.2,.8,.2,1) both;
 }
 @keyframes oc-modal-in { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .oc-overlay, .oc-modal { animation: none; } }
-.oc-modal-title { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 17px; margin-bottom: 14px; color: var(--ink); }
-.oc-field { margin-bottom: 14px; }
+.oc-modal-title { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 17px; margin-bottom: 16px; color: var(--title-color); }
+.oc-field { margin-bottom: 16px; }
 .oc-label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; display: block; }
 .oc-input, .oc-textarea, .oc-date {
-  width: 100%; border: 1.5px solid var(--border); border-radius: 13px; padding: 10px 12px;
+  width: 100%; border: 1.5px solid var(--border); border-radius: 13px; padding: 11px 13px;
   font-size: 16px; font-family: inherit; color: var(--ink); background: var(--input-bg);
 }
-.oc-input:focus, .oc-textarea:focus, .oc-date:focus { outline: 2px solid var(--ink); border-color: transparent; }
+.oc-input:focus, .oc-textarea:focus, .oc-date:focus { outline: 2px solid var(--sea); border-color: transparent; }
 .oc-textarea { resize: vertical; min-height: 60px; }
 .oc-cat-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-.oc-cat-pill { display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; border: 1.5px solid var(--border); cursor: pointer; background: var(--card-bg); color: var(--muted); }
-.oc-cat-pill.sel { border-color: var(--c); color: var(--ink); background: color-mix(in srgb, var(--c) 20%, var(--card-bg)); }
+.oc-cat-pill { display: flex; align-items: center; gap: 6px; padding: 8px 13px; border-radius: 999px; font-size: 13px; font-weight: 700; border: 1.5px solid var(--border); cursor: pointer; background: var(--card-bg); color: var(--muted); }
+.oc-cat-pill.sel { border-color: var(--c); color: var(--title-color); background: color-mix(in srgb, var(--c) 24%, white); }
 .oc-yearly-row { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 500; color: var(--ink); }
-.oc-yearly-row input { width: 17px; height: 17px; }
+.oc-yearly-row input { width: 18px; height: 18px; accent-color: var(--sea); }
 .oc-yearly-hint { font-size: 11px; color: var(--faint); margin-top: 4px; }
-.oc-btn-row { display: flex; gap: 8px; margin-top: 18px; }
-.oc-btn { flex: 1; padding: 12px; border-radius: 14px; border: none; font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; transition: transform .12s ease; }
+.oc-btn-row { display: flex; gap: 8px; margin-top: 20px; }
+.oc-btn { flex: 1; padding: 13px; border-radius: 14px; border: none; font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; transition: transform .12s ease; }
 .oc-btn:active { transform: scale(.97); }
 .oc-btn-primary { background: var(--ink); color: var(--accent); }
-[data-theme="light"] .oc-btn-primary { background: #2c2760; }
 .oc-btn-danger { background: var(--danger-bg); color: var(--danger); }
 .oc-btn-ghost { background: var(--ghost-btn-bg); color: var(--ink); }
-.oc-swatches { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.oc-sw { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+
+/* ---- Color picker (presets + native + hex) — shared by both the
+   "new category" panel and each row in the category manager ---- */
+.oc-swatches { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.oc-sw { width: 27px; height: 27px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform .1s ease; }
+.oc-sw:active { transform: scale(.9); }
 .oc-sw.sel { border-color: var(--ink); }
-.oc-newcat { display: flex; gap: 8px; margin-top: 8px; }
-.oc-catrow { border: 1.5px solid var(--border); border-radius: 14px; padding: 12px; margin-bottom: 10px; }
-.oc-catrow-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.oc-color-custom { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.oc-color-native {
+  -webkit-appearance: none; appearance: none; width: 32px; height: 32px; border: none;
+  border-radius: 50%; padding: 0; background: none; cursor: pointer; flex-shrink: 0;
+}
+.oc-color-native::-webkit-color-swatch-wrapper { padding: 0; border-radius: 50%; }
+.oc-color-native::-webkit-color-swatch { border: 1.5px solid var(--border); border-radius: 50%; }
+.oc-hex-input {
+  flex: 1; min-width: 0; border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 10px;
+  font-size: 13px; font-family: 'Zen Maru Gothic', monospace; color: var(--ink); background: var(--input-bg);
+  text-transform: uppercase;
+}
+.oc-hex-input:focus { outline: 2px solid var(--sea); border-color: transparent; }
+.oc-newcat-panel { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
+
+/* ---- Category manager (drag to reorder) ---- */
+.oc-catlist { display: flex; flex-direction: column; }
+.oc-catrow { border: 1.5px solid var(--border); border-radius: 16px; padding: 13px; margin-bottom: 10px; background: var(--card-bg); }
+.oc-catrow.dragging { box-shadow: 0 10px 22px rgba(62,65,102,.18); z-index: 5; position: relative; }
+.oc-catrow-head { display: flex; align-items: center; gap: 8px; }
+.oc-drag-handle { border: none; background: none; padding: 4px; margin: 0 -2px; cursor: grab; touch-action: none; display: flex; align-items: center; }
+.oc-drag-handle:active { cursor: grabbing; }
 .oc-catrow-count { font-size: 11px; color: var(--faint); white-space: nowrap; }
-.oc-catrow-name { margin-bottom: 8px; font-weight: 700; }
-.oc-swatches-inline { display: flex; flex-wrap: wrap; gap: 7px; }
-.oc-swatches-inline .oc-sw { width: 22px; height: 22px; }
+.oc-catrow-name { flex: 1; min-width: 0; font-weight: 700; }
 .oc-catrow-del { margin-top: 10px; background: none; border: none; color: var(--danger); font-size: 12px; font-weight: 700; cursor: pointer; padding: 0; }
+
+/* ---- Confirm dialog ---- */
+.oc-confirm { max-width: 340px; border-radius: 24px; padding: 24px 22px; text-align: center; }
+.oc-confirm-title { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 16px; margin-bottom: 8px; color: var(--title-color); }
+.oc-confirm-body { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 18px; }
 
 /* ---- Month / year picker ---- */
 .oc-month-picker { max-width: 400px; }
 .oc-picker-year-row { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 16px; }
-.oc-picker-year { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 17px; color: var(--ink); min-width: 64px; text-align: center; }
+.oc-picker-year { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 17px; color: var(--title-color); min-width: 64px; text-align: center; }
 .oc-month-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .oc-month-cell {
   padding: 14px 0; border-radius: 14px; border: 1.5px solid var(--border); background: var(--input-bg);
@@ -299,24 +320,14 @@ body::before {
 }
 .oc-month-cell:active { transform: scale(.95); }
 .oc-month-cell.sel { background: var(--ink); color: var(--accent); border-color: transparent; }
-[data-theme="light"] .oc-month-cell.sel { background: #2c2760; }
-
-/* ---- Confirm dialog ---- */
-.oc-confirm { max-width: 340px; border-radius: 24px; padding: 22px 20px; text-align: center; }
-.oc-confirm-title { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 16px; margin-bottom: 8px; }
-.oc-confirm-body { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 18px; }
 
 /* ---- Settings ---- */
-.oc-settings-section { margin-bottom: 20px; }
+.oc-settings-section { margin-bottom: 22px; }
 .oc-settings-heading { font-family: 'Zen Maru Gothic', sans-serif; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 10px; letter-spacing: .04em; }
-.oc-settings-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.oc-settings-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 0; border-bottom: 1px solid var(--border); }
 .oc-settings-row:last-child { border-bottom: none; }
-.oc-settings-row-label { font-size: 14px; font-weight: 500; color: var(--ink); }
+.oc-settings-row-label { font-size: 14px; font-weight: 500; color: var(--title-color); }
 .oc-settings-row-desc { font-size: 11.5px; color: var(--faint); margin-top: 2px; }
-.oc-theme-toggle { display: flex; background: var(--input-bg); border-radius: 999px; padding: 3px; border: 1px solid var(--border); }
-.oc-theme-toggle button { border: none; background: none; font-size: 12px; font-weight: 700; font-family: 'Zen Maru Gothic', sans-serif; padding: 6px 14px; border-radius: 999px; cursor: pointer; color: var(--muted); }
-.oc-theme-toggle button.active { background: var(--ink); color: var(--accent); }
-[data-theme="light"] .oc-theme-toggle button.active { background: #2c2760; }
 .oc-about { font-size: 12.5px; color: var(--muted); line-height: 1.8; }
 .oc-file-input { display: none; }
 
@@ -324,21 +335,20 @@ body::before {
 .oc-toast-wrap { position: fixed; top: max(16px, env(safe-area-inset-top)); left: 0; right: 0; display: flex; justify-content: center; z-index: 60; pointer-events: none; }
 .oc-toast {
   background: var(--ink); color: var(--accent); font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 13px;
-  padding: 10px 18px; border-radius: 999px; box-shadow: 0 8px 22px rgba(0,0,0,.3);
+  padding: 11px 20px; border-radius: 999px; box-shadow: 0 10px 24px rgba(46,48,80,.22);
   animation: oc-toast-in .35s cubic-bezier(.2,.8,.2,1) both, oc-toast-out .35s ease 1.8s both;
 }
-[data-theme="light"] .oc-toast { background: #2c2760; }
 @keyframes oc-toast-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
 @keyframes oc-toast-out { from { opacity: 1; } to { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .oc-toast { animation: none; } }
 
 /* ---- Loading splash ---- */
 .oc-splash {
-  position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-  background: radial-gradient(ellipse at top, var(--page-1) 0%, var(--page-2) 45%, var(--page-3) 100%);
+  position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+  background: radial-gradient(ellipse at top, var(--bg-2) 0%, var(--bg-1) 55%);
   transition: opacity .45s ease;
 }
-.oc-splash-star { width: 34px; height: 34px; font-size: 34px; color: var(--accent); animation: oc-twinkle 1.4s ease-in-out infinite; }
+.oc-splash-star { width: 36px; height: 36px; font-size: 36px; color: var(--accent); animation: oc-twinkle 1.4s ease-in-out infinite; }
 @keyframes oc-twinkle { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .55; transform: scale(.85); } }
 .oc-splash-text { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 20px; color: var(--title-color); }
 .oc-splash.oc-hide { opacity: 0; pointer-events: none; }
@@ -346,11 +356,11 @@ body::before {
 
 /* ---- Focus visibility for keyboard / accessibility ---- */
 a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
-  outline: 2px solid var(--accent); outline-offset: 2px;
+  outline: 2px solid var(--sea); outline-offset: 2px;
 }
 
 /* ---- Responsive: give some breathing room on tablets/desktop ---- */
 @media (min-width: 720px) {
   .oc-wrap, .oc-header { max-width: 680px; }
-  .oc-card { padding: 20px; }
+  .oc-card { padding: 24px; }
 }

@@ -8,12 +8,12 @@
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#121633" />
-<meta name="color-scheme" content="dark light" />
+<meta name="theme-color" content="#F7F4EF" />
+<meta name="color-scheme" content="light" />
 
 <!-- iOS home screen behaviour -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Constellation" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="format-detection" content="telephone=no" />
@@ -36,18 +36,34 @@
 </head>
 <body>
 
-<!-- Single source of truth for every star glyph in the app (title mark, category
-     dots, calendar indicators, buttons, splash). Same polygon as icon-source.svg;
-     stroke+round-linejoin below softens the points into the "soft star" motif. -->
+<!-- Single source of truth for every icon in the app (stars, gear, drag grip).
+     Reused everywhere via <use> so the whole app shares one visual language. -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- Filled 5-point star: used wherever a category's color needs to read clearly
+       (chips, calendar day markers) — same shape as the app icon. -->
   <symbol id="star-soft" viewBox="0 0 512 512">
     <polygon points="256,82 285.7,199.4 406.8,199.4 309.5,270.6 346.5,388 256,316.8 165.5,388 202.5,270.6 105.2,199.4 226.3,199.4" />
+  </symbol>
+  <!-- Open 4-point sparkle: the lighter, decorative mark used for branding
+       (title, "today" button, section headers, splash) — never tied to a category color. -->
+  <symbol id="star-sparkle" viewBox="0 0 24 24">
+    <path d="M12 3C12 3 13.2 8.5 16.6 12C13.2 15.5 12 21 12 21C12 21 10.8 15.5 7.4 12C10.8 8.5 12 3 12 3Z"/>
+  </symbol>
+  <!-- Simple line-art gear for Settings. -->
+  <symbol id="icon-gear" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+  </symbol>
+  <!-- Drag-handle grip (six dots) for reordering categories. -->
+  <symbol id="icon-grip" viewBox="0 0 24 24">
+    <circle cx="9" cy="6" r="1.3"/><circle cx="9" cy="12" r="1.3"/><circle cx="9" cy="18" r="1.3"/>
+    <circle cx="15" cy="6" r="1.3"/><circle cx="15" cy="12" r="1.3"/><circle cx="15" cy="18" r="1.3"/>
   </symbol>
 </svg>
 
 <!-- Launch splash: static markup so it paints before any JS runs. app.js fades + removes it. -->
 <div class="oc-splash" id="splash">
-  <svg class="oc-star-icon oc-splash-star" aria-hidden="true"><use href="#star-soft"></use></svg>
+  <svg class="oc-sparkle-icon oc-splash-star" aria-hidden="true"><use href="#star-sparkle"></use></svg>
   <div class="oc-splash-text">My Constellation</div>
 </div>
 
