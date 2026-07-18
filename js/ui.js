@@ -22,12 +22,6 @@ export function starIcon(extraClass = "", color = "") {
   return `<svg class="oc-star-icon ${extraClass}" aria-hidden="true"${style}><use href="#star-soft"></use></svg>`;
 }
 
-/** Open, lighter sparkle — the decorative/branding mark (title, "today"
- *  button, section headers, splash). Never tied to a category color. */
-export function sparkleIcon(extraClass = "") {
-  return `<svg class="oc-sparkle-icon ${extraClass}" aria-hidden="true"><use href="#star-sparkle"></use></svg>`;
-}
-
 function iconGear(extraClass = "") {
   return `<svg class="oc-line-icon ${extraClass}" aria-hidden="true"><use href="#icon-gear"></use></svg>`;
 }
@@ -43,7 +37,7 @@ export function renderHeader() {
   return `
     <div class="oc-header">
       <div class="oc-header-text">
-        <div class="oc-title">${sparkleIcon("oc-title-mark")}My Constellation</div>
+        <div class="oc-title">${starIcon("oc-title-mark")}My Constellation</div>
         <div class="oc-sub">日々を照らす、小さな星たちを集めて。</div>
       </div>
       <button class="oc-icon-btn" data-action="open-settings" aria-label="設定を開く">${iconGear()}</button>
@@ -58,15 +52,13 @@ export function renderChips(state) {
   const activeSet = new Set(state.activeFilters);
   const chips = state.categories.map((c) => `
     <button class="oc-chip ${activeSet.has(c.id) ? "active" : ""}" data-action="toggle-filter" data-id="${c.id}"
-      style="${activeSet.has(c.id) ? `box-shadow:0 2px 8px ${c.color}55` : ""}"
-      aria-pressed="${activeSet.has(c.id)}">
-      ${starIcon("oc-chip-star", c.color)}${escapeHtml(c.name)}
+      aria-pressed="${activeSet.has(c.id)}">      ${starIcon("oc-chip-star", c.color)}${escapeHtml(c.name)}
     </button>
   `).join("");
   return `
     <div class="oc-chips">
       ${chips}
-      <button class="oc-chip oc-manage-chip" data-action="open-catmanager">${sparkleIcon("oc-chip-star")}編集</button>
+      <button class="oc-chip oc-manage-chip" data-action="open-catmanager">${starIcon("oc-chip-star")}編集</button>
     </div>
   `;
 }
@@ -115,7 +107,7 @@ export function renderCalendarCard(state, today) {
         <button class="oc-nav-btn" data-action="prev-month" aria-label="前の月">‹</button>
         <div class="oc-cal-title-group">
           <button class="oc-today-btn ${!isCurrentMonth || state.selectedDate ? "is-active" : ""}" data-action="go-today" aria-label="今日へ戻る">
-            ${sparkleIcon()}
+            ${starIcon("oc-today-star")}
           </button>
           <button class="oc-cal-title" data-action="open-month-picker" aria-haspopup="dialog">
             ${monthLabel}<span class="oc-cal-chevron" aria-hidden="true">▾</span>
@@ -209,7 +201,7 @@ export function renderListCard(state, today, computed) {
     const sel = state.selectedDate;
     return `
       <div class="oc-card">
-        <div class="oc-section-title">${sparkleIcon("oc-section-star")}${sel.getMonth() + 1}月${sel.getDate()}日の予定</div>
+        <div class="oc-section-title">${starIcon("oc-section-star")}${sel.getMonth() + 1}月${sel.getDate()}日の予定</div>
         ${selectedEvents.length === 0
           ? `<div class="oc-empty">この日の予定はまだありません</div>`
           : selectedEvents.map((e) => ticketToday(e, state.categories)).join("")}
@@ -222,13 +214,13 @@ export function renderListCard(state, today, computed) {
 
   return `
     <div class="oc-card">
-      <div class="oc-section-title">${sparkleIcon("oc-section-star")}Today</div>
+      <div class="oc-section-title">${starIcon("oc-section-star")}Today</div>
       ${todays.length === 0
         ? `<div class="oc-empty">今日の予定はありません</div>`
         : todays.map((e) => ticketToday(e, state.categories)).join("")}
     </div>
     <div class="oc-card">
-      <div class="oc-section-title">${sparkleIcon("oc-section-star")}Up Next</div>
+      <div class="oc-section-title">${starIcon("oc-section-star")}Up Next</div>
       ${upcoming.length === 0
         ? `<div class="oc-empty">1週間以内の予定はありません</div>`
         : upcoming.map((e) => ticketCountdown(e, state.categories, e._next, today)).join("")}
@@ -448,7 +440,7 @@ export function renderToast(state) {
 export function splashHtml() {
   return `
     <div class="oc-splash" id="splash">
-      ${sparkleIcon("oc-splash-star")}
+      ${starIcon("oc-splash-star")}
       <div class="oc-splash-text">My Constellation</div>
     </div>
   `;

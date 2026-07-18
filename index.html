@@ -8,7 +8,7 @@
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#F7F4EF" />
+<meta name="theme-color" content="#8DCBD8" />
 <meta name="color-scheme" content="light" />
 
 <!-- iOS home screen behaviour -->
@@ -44,11 +44,6 @@
   <symbol id="star-soft" viewBox="0 0 512 512">
     <polygon points="256,82 285.7,199.4 406.8,199.4 309.5,270.6 346.5,388 256,316.8 165.5,388 202.5,270.6 105.2,199.4 226.3,199.4" />
   </symbol>
-  <!-- Open 4-point sparkle: the lighter, decorative mark used for branding
-       (title, "today" button, section headers, splash) — never tied to a category color. -->
-  <symbol id="star-sparkle" viewBox="0 0 24 24">
-    <path d="M12 3C12 3 13.2 8.5 16.6 12C13.2 15.5 12 21 12 21C12 21 10.8 15.5 7.4 12C10.8 8.5 12 3 12 3Z"/>
-  </symbol>
   <!-- Simple line-art gear for Settings. -->
   <symbol id="icon-gear" viewBox="0 0 24 24">
     <circle cx="12" cy="12" r="3"/>
@@ -63,7 +58,7 @@
 
 <!-- Launch splash: static markup so it paints before any JS runs. app.js fades + removes it. -->
 <div class="oc-splash" id="splash">
-  <svg class="oc-sparkle-icon oc-splash-star" aria-hidden="true"><use href="#star-sparkle"></use></svg>
+  <svg class="oc-star-icon oc-splash-star" aria-hidden="true"><use href="#star-soft"></use></svg>
   <div class="oc-splash-text">My Constellation</div>
 </div>
 

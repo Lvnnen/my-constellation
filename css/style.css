@@ -10,38 +10,39 @@
 
 /* ---- Design tokens (single default theme) ---- */
 :root {
-  /* Page background: Shell White warming very slightly toward Linen. */
-  --bg-1: #f7f4ef;
-  --bg-2: #fbf1d9;
+  /* Page background: near-white, warming toward nothing — just the faintest
+     wash of Sea Blue so the page doesn't read as flat/stark white. */
+  --bg-1: #ffffff;
+  --bg-2: #eaf6f8;
 
-  /* Text — Venice, darkened as needed for AA contrast at each weight of use. */
+  /* Text — a cool Venice-derived scale, darkened as needed for AA contrast. */
   --title-color: #2e3050;
-  --sub-color: #767a9e;
+  --sub-color: #6d7597;
   --ink: #3e4166;
-  --muted: #767a9e;
-  --faint: #aeb2cf;
+  --muted: #6d7597;
+  --faint: #a8b0c8;
 
-  /* Surfaces */
+  /* Surfaces — white cards on the cool wash, thin cool-toned hairlines. */
   --card-bg: #ffffff;
-  --card-border: #eee9dd;
-  --input-bg: #fbfaf6;
-  --border: #e7e1d3;
+  --card-border: #e2eef1;
+  --input-bg: #f5fafb;
+  --border: #e2eef1;
   --chip-bg: #ffffff;
-  --chip-border: #e7e1d3;
-  --nav-btn-bg: #f1eee6;
-  --ghost-btn-bg: #f1eee6;
-  --overlay: rgba(46, 48, 80, 0.32);
+  --chip-border: #e2eef1;
+  --nav-btn-bg: #eaf6f8;
+  --ghost-btn-bg: #eaf6f8;
+  --overlay: rgba(40, 54, 66, 0.34);
 
-  /* Brand accent — Shine (gold) stays the "star" color for CTAs and glow. */
+  /* Sea Blue — THE brand color: nav, active states, links, headings accents. */
+  --sea: #8dcbd8;
+  --sea-ink: #4c97a3; /* darkened for use as small text (Saturdays, links) */
+
+  /* Shine (gold) — kept rare, for the one or two "special" moments (FAB,
+     primary CTA, launch splash) rather than everyday chrome. */
   --accent: #f5c74d;
   --accent-ink: #3e4166;
 
-  /* Sea Blue — secondary interactive accent. -ink variant is darkened for
-     use as small text (Saturday dates, links) where the raw tint is too light. */
-  --sea: #8dcbd8;
-  --sea-ink: #4c97a3;
-
-  /* Accent Red — same light/ink split, used for Sundays, holidays, danger actions. */
+  /* Accent Red — reserved strictly for warnings: Sundays/holidays, delete. */
   --red: #f2877a;
   --red-ink: #d96a5c;
   --danger: #d96a5c;
@@ -50,8 +51,8 @@
   --sun-holiday: var(--red-ink);
   --saturday: var(--sea-ink);
 
-  --shadow-card: 0 10px 24px rgba(62, 65, 102, 0.09);
-  --shadow-fab: 0 8px 20px rgba(245, 199, 77, 0.5);
+  --shadow-card: 0 10px 24px rgba(62, 65, 102, 0.08);
+  --shadow-fab: 0 8px 20px rgba(245, 199, 77, 0.45);
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -60,30 +61,11 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   font-family: 'Noto Sans JP', sans-serif;
-  background: radial-gradient(ellipse at top, var(--bg-2) 0%, var(--bg-1) 55%);
+  background: radial-gradient(ellipse at top, var(--bg-2) 0%, var(--bg-1) 60%);
   color: var(--ink);
   min-height: 100vh;
   min-height: 100dvh;
   position: relative;
-}
-
-/* A faint constellation of dots — the night-sky motif kept just barely
-   present behind the light palette, rather than a literal dark sky. */
-body::before {
-  content: "";
-  position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  opacity: .5;
-  background-image:
-    radial-gradient(1.6px 1.6px at 12% 18%, rgba(62,65,102,.14), transparent),
-    radial-gradient(1.3px 1.3px at 30% 45%, rgba(62,65,102,.10), transparent),
-    radial-gradient(1.8px 1.8px at 45% 12%, rgba(245,199,77,.28), transparent),
-    radial-gradient(1.3px 1.3px at 62% 32%, rgba(62,65,102,.10), transparent),
-    radial-gradient(1.5px 1.5px at 78% 62%, rgba(62,65,102,.09), transparent),
-    radial-gradient(1.4px 1.4px at 88% 22%, rgba(245,199,77,.22), transparent),
-    radial-gradient(1.3px 1.3px at 18% 78%, rgba(62,65,102,.10), transparent),
-    radial-gradient(1.6px 1.6px at 56% 88%, rgba(62,65,102,.08), transparent);
-  background-repeat: repeat;
-  background-size: 380px 380px;
 }
 
 #app {
@@ -111,24 +93,18 @@ body::before {
 .oc-wrap { max-width: 640px; margin: 0 auto; }
 
 /* ---- Icon system ----
-   Three glyph families share one visual language (currentColor + round joins):
-   - oc-star-icon    filled 5-point star — carries a category's color
-   - oc-sparkle-icon open 4-point sparkle — decorative/branding accents
-   - oc-line-icon    stroked line-art (gear) — system chrome
-   - oc-grip-icon    filled dots — drag handle
+   Two glyph families share one visual language (currentColor + round joins):
+   - oc-star-icon   filled, round-tipped 5-point star — the app's one star
+                    shape, used both for category color chips/markers and
+                    (in Sea Blue) for decorative branding moments
+   - oc-line-icon   stroked line-art (gear) — system chrome
+   - oc-grip-icon   filled dots — drag handle
 */
 .oc-star-icon {
   width: 1em; height: 1em; flex-shrink: 0;
   fill: currentColor; stroke: currentColor;
-  stroke-width: 26; stroke-linejoin: round; stroke-linecap: round;
-  color: var(--accent);
-  overflow: visible;
-}
-.oc-sparkle-icon {
-  width: 1em; height: 1em; flex-shrink: 0;
-  fill: none; stroke: currentColor;
-  stroke-width: 1.7; stroke-linejoin: round; stroke-linecap: round;
-  color: var(--accent);
+  stroke-width: 30; stroke-linejoin: round; stroke-linecap: round;
+  color: var(--sea);
   overflow: visible;
 }
 .oc-line-icon {
@@ -138,7 +114,7 @@ body::before {
 }
 .oc-grip-icon { width: 18px; height: 18px; fill: currentColor; stroke: none; color: var(--faint); }
 
-.oc-title-mark { font-size: 19px; filter: drop-shadow(0 0 4px rgba(245,199,77,.4)); }
+.oc-title-mark { font-size: 19px; filter: drop-shadow(0 0 4px rgba(141,203,216,.45)); }
 
 /* ---- Filter chips ---- */
 .oc-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; align-items: center; }
@@ -151,7 +127,8 @@ body::before {
 }
 .oc-chip:active { transform: scale(.96); }
 .oc-chip-star { font-size: 10px; }
-.oc-chip.active { color: var(--title-color); border-color: transparent; box-shadow: 0 3px 10px rgba(62,65,102,.14); }
+.oc-chip.active { color: #fff; background: var(--sea); border-color: transparent; box-shadow: 0 4px 12px rgba(141,203,216,.45); }
+.oc-chip.active .oc-star-icon { color: #fff !important; }
 .oc-manage-chip { border-style: dashed; color: var(--muted); background: transparent; }
 
 /* ---- Cards ---- */
@@ -177,7 +154,7 @@ body::before {
   font-size: 16px; transition: transform .15s ease, color .15s ease;
 }
 .oc-today-btn:active { transform: scale(.88); }
-.oc-today-btn.is-active { color: var(--accent); }
+.oc-today-btn.is-active { color: var(--sea); }
 .oc-nav-btn { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--nav-btn-bg); color: var(--ink); font-size: 16px; cursor: pointer; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .oc-nav-btn:active { background: var(--border); }
 .oc-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
@@ -197,12 +174,12 @@ body::before {
   transition: background .15s ease;
 }
 .oc-day.empty { cursor: default; visibility: hidden; }
-.oc-day.selected { background: var(--ink); }
+.oc-day.selected { background: var(--sea); }
 .oc-day .num.sun, .oc-day .num.holiday { color: var(--sun-holiday); }
 .oc-day .num.sat { color: var(--saturday); }
 .oc-day.selected .num { color: #fff; }
-.oc-day.today:not(.selected) { box-shadow: 0 0 0 2px var(--accent); animation: oc-pulse 2.2s ease-in-out infinite; }
-@keyframes oc-pulse { 0%,100% { box-shadow: 0 0 0 2px var(--accent); } 50% { box-shadow: 0 0 0 5px rgba(245,199,77,.35); } }
+.oc-day.today:not(.selected) { box-shadow: 0 0 0 2px var(--sea); animation: oc-pulse 2.2s ease-in-out infinite; }
+@keyframes oc-pulse { 0%,100% { box-shadow: 0 0 0 2px var(--sea); } 50% { box-shadow: 0 0 0 5px rgba(141,203,216,.4); } }
 @media (prefers-reduced-motion: reduce) { .oc-day.today { animation: none; } }
 .oc-day-stars { display: flex; align-items: center; gap: 2px; height: 9px; }
 .oc-day-star { font-size: 7px; }
@@ -267,7 +244,7 @@ body::before {
 .oc-btn-row { display: flex; gap: 8px; margin-top: 20px; }
 .oc-btn { flex: 1; padding: 13px; border-radius: 14px; border: none; font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; transition: transform .12s ease; }
 .oc-btn:active { transform: scale(.97); }
-.oc-btn-primary { background: var(--ink); color: var(--accent); }
+.oc-btn-primary { background: var(--sea); color: #fff; }
 .oc-btn-danger { background: var(--danger-bg); color: var(--danger); }
 .oc-btn-ghost { background: var(--ghost-btn-bg); color: var(--ink); }
 
@@ -319,7 +296,7 @@ body::before {
   transition: transform .12s ease;
 }
 .oc-month-cell:active { transform: scale(.95); }
-.oc-month-cell.sel { background: var(--ink); color: var(--accent); border-color: transparent; }
+.oc-month-cell.sel { background: var(--sea); color: #fff; border-color: transparent; }
 
 /* ---- Settings ---- */
 .oc-settings-section { margin-bottom: 22px; }
@@ -334,7 +311,7 @@ body::before {
 /* ---- Toast ---- */
 .oc-toast-wrap { position: fixed; top: max(16px, env(safe-area-inset-top)); left: 0; right: 0; display: flex; justify-content: center; z-index: 60; pointer-events: none; }
 .oc-toast {
-  background: var(--ink); color: var(--accent); font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 13px;
+  background: var(--ink); color: #fff; font-family: 'Zen Maru Gothic', sans-serif; font-weight: 700; font-size: 13px;
   padding: 11px 20px; border-radius: 999px; box-shadow: 0 10px 24px rgba(46,48,80,.22);
   animation: oc-toast-in .35s cubic-bezier(.2,.8,.2,1) both, oc-toast-out .35s ease 1.8s both;
 }
