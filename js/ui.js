@@ -52,13 +52,15 @@ export function renderChips(state) {
   const activeSet = new Set(state.activeFilters);
   const chips = state.categories.map((c) => `
     <button class="oc-chip ${activeSet.has(c.id) ? "active" : ""}" data-action="toggle-filter" data-id="${c.id}"
-      aria-pressed="${activeSet.has(c.id)}">      ${starIcon("oc-chip-star", c.color)}${escapeHtml(c.name)}
+      style="${activeSet.has(c.id) ? `box-shadow:0 3px 10px ${c.color}66` : ""}"
+      aria-pressed="${activeSet.has(c.id)}">
+      ${starIcon("oc-chip-star", c.color)}${escapeHtml(c.name)}
     </button>
   `).join("");
   return `
     <div class="oc-chips">
       ${chips}
-      <button class="oc-chip oc-manage-chip" data-action="open-catmanager">${starIcon("oc-chip-star")}編集</button>
+      <button class="oc-chip oc-manage-chip" data-action="open-catmanager" aria-label="カテゴリーを追加・編集">＋ 追加・編集</button>
     </div>
   `;
 }

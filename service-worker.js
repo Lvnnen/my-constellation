@@ -4,7 +4,7 @@
  * Bump CACHE_VERSION whenever any cached file changes, so returning visitors
  * pick up the new version instead of a stale cache.
  */
-const CACHE_VERSION = "my-constellation-v4";
+const CACHE_VERSION = "my-constellation-v5";
 
 const APP_SHELL = [
   "./",

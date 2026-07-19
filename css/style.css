@@ -114,7 +114,7 @@ body {
 }
 .oc-grip-icon { width: 18px; height: 18px; fill: currentColor; stroke: none; color: var(--faint); }
 
-.oc-title-mark { font-size: 19px; filter: drop-shadow(0 0 4px rgba(141,203,216,.45)); }
+.oc-title-mark { font-size: 19px; color: var(--accent); filter: drop-shadow(0 0 4px rgba(245,199,77,.45)); }
 
 /* ---- Filter chips ---- */
 .oc-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; align-items: center; }
@@ -127,9 +127,8 @@ body {
 }
 .oc-chip:active { transform: scale(.96); }
 .oc-chip-star { font-size: 10px; }
-.oc-chip.active { color: #fff; background: var(--sea); border-color: transparent; box-shadow: 0 4px 12px rgba(141,203,216,.45); }
-.oc-chip.active .oc-star-icon { color: #fff !important; }
-.oc-manage-chip { border-style: dashed; color: var(--muted); background: transparent; }
+.oc-chip.active { color: var(--title-color); border-color: transparent; box-shadow: 0 3px 10px rgba(62,65,102,.14); }
+.oc-manage-chip { color: var(--sea-ink); background: var(--chip-bg); border-color: var(--chip-border); font-weight: 800; }
 
 /* ---- Cards ---- */
 .oc-card {
